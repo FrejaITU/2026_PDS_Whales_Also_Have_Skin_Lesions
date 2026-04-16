@@ -1,29 +1,26 @@
-## Running features on images 
 from pathlib import Path
 import numpy as np
 import pandas as pd
 from skimage import color, io
 
-
 # --------------------------------------------------
 # Change only this block when you want a new feature
 # --------------------------------------------------
-### Import your script like you would a libary 
+### import your script like you would a libary
 import mask_components as mc
-
-
-### Define it as a function in the FEATURES dict
+### Add it to a dictonary
 FEATURES = {
-    "mask_components": lambda image, mask: mc.mask_components_score(image, mask),
+    "mask_components": lambda image, mask: mc.mask_components(image, mask),
 }
-### Choose which feature to run
+# Change the Feature name to choose yours
 FEATURE_NAME = "mask_components"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
 # Paths
 # --------------------------------------------------
-data_path = Path("../data")
+BASE_DIR = Path(__file__).resolve().parent.parent
+data_path = BASE_DIR / "data"
 img_dir = data_path / "imgs"
 mask_dir = data_path / "masks"
 
@@ -33,6 +30,7 @@ metadata = pd.read_csv(data_path / "metadata_(for_scores).csv")
 # Create the output column if it does not exist
 if FEATURE_NAME not in metadata.columns:
     metadata[FEATURE_NAME] = np.nan
+
 
 def load_image_and_mask(img_path, mask_path):
     image = io.imread(img_path)
@@ -48,6 +46,7 @@ def load_image_and_mask(img_path, mask_path):
 
     return image, mask
 
+
 for patient in metadata.itertuples():
     idx = patient.Index
     img_id = patient.img_id
@@ -60,7 +59,7 @@ for patient in metadata.itertuples():
         continue
 
     if not current_mask_path.exists():
-        print("Missing mask:", current_img_path.name)
+        print("Missing mask:", current_mask_path.name)
         continue
 
     image, mask = load_image_and_mask(current_img_path, current_mask_path)
@@ -77,3 +76,4 @@ for patient in metadata.itertuples():
     metadata.at[idx, FEATURE_NAME] = score
 
 metadata.to_csv(data_path / "metadata_(for_scores).csv", index=False)
+print(f"Finished running feature: {FEATURE_NAME}")
