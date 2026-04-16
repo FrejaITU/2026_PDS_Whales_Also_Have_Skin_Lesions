@@ -10,7 +10,7 @@ from skimage import color, io
 import mask_components as mc
 ### Add it to a dictonary
 FEATURES = {
-    "mask_components": lambda image, mask: mc.mask_components(image, mask),
+    "mask_components": lambda image, mask: mc.mask_components_score(image, mask),
 }
 # Change the Feature name to choose yours
 FEATURE_NAME = "mask_components"
