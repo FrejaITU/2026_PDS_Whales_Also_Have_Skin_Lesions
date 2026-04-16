@@ -9,13 +9,11 @@ from skimage import color, io
 # Change only this block when you want a new feature
 # --------------------------------------------------
 ### Import your script like you would a libary 
-import color_feature as cf
 import mask_components as mc
 
 
 ### Define it as a function in the FEATURES dict
 FEATURES = {
-    "color": lambda image, mask: cf.color_score(image, mask),
     "mask_components": lambda image, mask: mc.mask_components_score(image, mask),
 }
 ### Choose which feature to run
