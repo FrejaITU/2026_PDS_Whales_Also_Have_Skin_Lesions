@@ -2,6 +2,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from skimage import color, io
+from skimage.morphology import remove_small_objects
 
 # --------------------------------------------------
 # Change only this block when you want a new feature
@@ -40,6 +41,7 @@ def load_image_and_mask(img_path, mask_path):
         mask = color.rgb2gray(mask)
 
     mask = mask > 0
+    mask = remove_small_objects(mask, min_size=50)
 
     if image.ndim == 3 and image.shape[-1] == 4:
         image = image[:, :, :3]
