@@ -8,4 +8,4 @@ def mask_components_score(image, mask):
         return np.nan
 
     _, num = label(mask, connectivity=2, return_num=True)
-    return num
+    return {"mask_components": num}
