@@ -9,13 +9,16 @@ from skimage.morphology import remove_small_objects
 # --------------------------------------------------
 ### import your script like you would a libary
 import mask_components as mc
+import melanoma_colors as mcf
+
 ### Add it to a dictonary
 FEATURES = {
     "mask_components": mc.mask_components_score,
+    "melanoma_colors": mcf.melanoma_colors_score,
 }
 
 # Change the Feature name to choose yours
-FEATURE_NAME = "mask_components"
+FEATURE_NAME = "melanoma_colors"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
