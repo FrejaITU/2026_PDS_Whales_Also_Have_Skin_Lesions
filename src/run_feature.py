@@ -11,8 +11,9 @@ from skimage.morphology import remove_small_objects
 import mask_components as mc
 ### Add it to a dictonary
 FEATURES = {
-    "mask_components": lambda image, mask: mc.mask_components_score(image, mask),
+    "mask_components": mc.mask_components_score,
 }
+
 # Change the Feature name to choose yours
 FEATURE_NAME = "mask_components"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
@@ -27,11 +28,6 @@ mask_dir = data_path / "masks"
 
 # Our CSV
 metadata = pd.read_csv(data_path / "metadata_(for_scores).csv")
-
-# Create the output column if it does not exist
-if FEATURE_NAME not in metadata.columns:
-    metadata[FEATURE_NAME] = np.nan
-
 
 def load_image_and_mask(img_path, mask_path):
     image = io.imread(img_path)
@@ -74,8 +70,12 @@ for patient in metadata.itertuples():
         print("Skipping (empty mask):", current_img_path.name)
         continue
 
-    score = FEATURE_FUNCTION(image, mask)
-    metadata.at[idx, FEATURE_NAME] = score
+    result = FEATURE_FUNCTION(image, mask)
+
+    for column_name, value in result.items():
+        if column_name not in metadata.columns:
+            metadata[column_name] = pd.NA
+        metadata.at[idx, column_name] = value
 
 metadata.to_csv(data_path / "metadata_(for_scores).csv", index=False)
 print(f"Finished running feature: {FEATURE_NAME}")
