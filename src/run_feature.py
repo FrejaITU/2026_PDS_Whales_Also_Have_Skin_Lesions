@@ -49,6 +49,9 @@ def load_image_and_mask(img_path, mask_path):
 
 
 for patient in metadata.itertuples():
+    if i % 25 == 0:
+    print(f"Processed {i} rows.")
+
     idx = patient.Index
     img_id = patient.img_id
 
