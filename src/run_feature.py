@@ -48,7 +48,7 @@ def load_image_and_mask(img_path, mask_path):
     return image, mask
 
 
-for patient in metadata.itertuples():
+for i, patient in enumerate(metadata.itertuples(), start=1):
     if i % 25 == 0:
         print(f"Processed {i} rows.")
 
