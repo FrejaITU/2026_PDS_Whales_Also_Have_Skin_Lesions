@@ -10,17 +10,17 @@ from skimage.morphology import remove_small_objects
 ### import your script like you would a libary
 import mask_components as mc
 import melanoma_colors as mcf
-import get_assymetry.py as ga
+import get_asymmetry as ga
 
 ### Add it to a dictonary
 FEATURES = {
     "mask_components": mc.mask_components_score,
     "melanoma_colors": mcf.melanoma_colors_score,
-    "get_assymetry": ga.get_asymmetry
+    "get_asymmetry": ga.get_asymmetry
 }
 
 # Change the Feature name to choose yours
-FEATURE_NAME = "baseline_assymetry"
+FEATURE_NAME = "get_asymmetry"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
