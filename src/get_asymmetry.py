@@ -2,8 +2,7 @@ import numpy as np
 from skimage import morphology
 from skimage.transform import rotate
 
-def get_asymmetry(mask):
-    # mask = color.rgb2gray(mask)
+def get_asymmetry(image, mask):
     scores = []
     for _ in range(6):
         segment = crop(mask)
@@ -12,7 +11,7 @@ def get_asymmetry(mask):
         mask = rotate(mask, 30)
     avg_score = sum(scores) / len(scores)
     return {
-         "avg_assymetry_score": avg_score
+         "avg_asymmetry_score": avg_score
     }
 
 def crop(mask):
