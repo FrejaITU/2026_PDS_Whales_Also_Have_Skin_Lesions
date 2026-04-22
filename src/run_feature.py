@@ -11,7 +11,7 @@ from skimage.morphology import remove_small_objects
 import mask_components as mc
 import melanoma_colors as mcf
 import get_asymmetry as ga
-import HSV_variance as hsvv
+import hsv_variance as hsvv
 
 ### Add it to a dictonary
 FEATURES = {

@@ -6,27 +6,12 @@
 
 import cv2
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 from math import nan
 from statistics import variance
 from skimage.color import rgb2hsv
 from skimage.segmentation import slic
 from scipy.stats import circmean, circvar
 
-data_path = '../data/'
-img_path = data_path + "imgs/"
-mask_path = data_path + "masks/"
-def load_image_and_mask(image_id, data_path=data_path):
-    file_im = img_path + image_id
-    file_mask = (mask_path + image_id).replace(".png", "_mask.png")
-    im = plt.imread(file_im)
-    mask = plt.imread(file_mask)
-    
-    return im, mask
-
-
-metadata = pd.read_csv(data_path+"metadata.csv")
 def slic_segmentation(
     image,
     mask,
