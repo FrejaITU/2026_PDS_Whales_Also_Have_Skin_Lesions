@@ -3,7 +3,6 @@ from skimage import morphology
 from skimage.transform import rotate
 
 def get_asymmetry(mask):
-    # mask = color.rgb2gray(mask)
     scores = []
     for _ in range(6):
         segment = crop(mask)
