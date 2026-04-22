@@ -1,7 +1,7 @@
 import numpy as np
 from skimage import morphology
 
-def get_compactness(mask):
+def get_compactness(image, mask):
     """Gives polsby-popper score, how much does the shape deviate from a perfect circle."""
     area = np.sum(mask)
 

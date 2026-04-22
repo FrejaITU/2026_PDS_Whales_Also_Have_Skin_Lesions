@@ -11,6 +11,7 @@ from skimage.morphology import remove_small_objects
 import mask_components as mc
 import melanoma_colors as mcf
 import get_asymmetry as ga
+import get_compactness as gc
 import hsv_variance as hsvv
 
 ### Add it to a dictonary
@@ -18,11 +19,12 @@ FEATURES = {
     "mask_components": mc.mask_components_score,
     "melanoma_colors": mcf.melanoma_colors_score,
     "get_asymmetry": ga.get_asymmetry,
+    "get_compactness": gc.get_compactness,
     "hsv_variance": hsvv.hsv_var_score
 }
 
 # Change the Feature name to choose yours
-FEATURE_NAME = "hsv_variance"
+FEATURE_NAME = "get_compactness"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
