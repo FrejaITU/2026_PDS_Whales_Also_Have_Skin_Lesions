@@ -60,7 +60,7 @@ def delta_A(mask, reflected):
     xor = np.logical_xor(mask, reflected)
     return xor.sum()
 
-def Mabrouk_asymmetry(mask):
+def Mabrouk_asymmetry(image, mask):
     """Computes the asymmetry score using the method from the 2020 Mabrouk research paper on skin lesion diagnosis"""
 
     #Find axis closest to centroid
@@ -83,4 +83,6 @@ def Mabrouk_asymmetry(mask):
     #Final asymmetry score (0, 1, or 2)
     score = int(AI1 > 1) + int(AI2 > 1)
 
-    return score, (AI1, AI2), (axis1,axis2)
+    return {
+        "score:": score
+    }
