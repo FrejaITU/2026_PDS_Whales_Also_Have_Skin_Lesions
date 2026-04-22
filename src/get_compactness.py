@@ -3,7 +3,6 @@ from skimage import morphology
 
 def get_compactness(mask):
     """Gives polsby-popper score, how much does the shape deviate from a perfect circle."""
-    # mask = color.rgb2gray(mask)
     area = np.sum(mask)
 
     struct_el = morphology.disk(3)

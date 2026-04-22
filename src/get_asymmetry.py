@@ -8,7 +8,7 @@ def get_asymmetry(image, mask):
         segment = crop(mask)
         (np.sum(segment))
         scores.append(np.sum(np.logical_xor(segment, np.flip(segment))) / (np.sum(segment)))
-        mask = rotate(mask, 30)
+        mask = rotate(mask, 30) > 0.5
     avg_score = sum(scores) / len(scores)
     return {
          "avg_asymmetry_score": avg_score
