@@ -253,10 +253,13 @@ def save_results_csv(info, output_path):
             writer.writerow([key, value])
 
 
-def analyze_skin_lesion(image_path, output_folder="output"):
+def analyze_skin_lesion(image_path, images_folder, results_folder=None):
     image_path = Path(image_path)
-    output_folder = Path(output_folder)
-    output_folder.mkdir(parents=True, exist_ok=True)
+    images_folder = Path(images_folder)
+    results_folder = Path(results_folder)
+
+    images_folder.mkdir(parents=True, exist_ok=True)
+    results_folder.mkdir(parents=True, exist_ok=True)
 
     image = load_image(image_path)
 
@@ -283,8 +286,16 @@ def analyze_skin_lesion(image_path, output_folder="output"):
         min_hair_percentage=0.02
     )
 
+    hair_pixels_total = cv2.countNonZero(hair_mask)
+    total_pixels = image.shape[0] * image.shape[1]
+
+    hair_percentage_of_image = (hair_pixels_total / total_pixels) * 100
+
+    hair_mask_inside_lesion = cv2.bitwise_and(hair_mask, lesion_mask)
+    hair_pixels_inside_lesion = cv2.countNonZero(hair_mask_inside_lesion)
+
     if lesion_pixels > 0:
-        hair_percentage_of_lesion = (hair_pixels / lesion_pixels) * 100
+        hair_percentage_of_lesion = (hair_pixels_inside_lesion / lesion_pixels) * 100
     else:
         hair_percentage_of_lesion = 0
 
@@ -299,11 +310,11 @@ def analyze_skin_lesion(image_path, output_folder="output"):
 
     base_name = image_path.stem
 
-    cleaned_image_path = output_folder / f"{base_name}_cleaned.png"
-    lesion_mask_path = output_folder / f"{base_name}_lesion_mask.png"
-    hair_mask_path = output_folder / f"{base_name}_hair_mask.png"
-    blackhat_filtered_path = output_folder / f"{base_name}_blackhat_filtered.png"
-    json_path = output_folder / f"{base_name}_analysis.json"
+    cleaned_image_path = images_folder / f"{base_name}_cleaned.png"
+    lesion_mask_path = images_folder / f"{base_name}_lesion_mask.png"
+    hair_mask_path = images_folder / f"{base_name}_hair_mask.png"
+    blackhat_filtered_path = images_folder / f"{base_name}_blackhat_filtered.png"
+    json_path = results_folder / f"{base_name}_analysis.json"
 
     cv2.imwrite(str(cleaned_image_path), cleaned_image)
     cv2.imwrite(str(lesion_mask_path), lesion_mask)
@@ -325,9 +336,15 @@ def analyze_skin_lesion(image_path, output_folder="output"):
 
         # Hair detection / cleaning results
         "black_hair_detected": bool(black_hair_detected),
-        "hair_pixels": int(hair_pixels),
+
+        # Hair over the whole image
+        "hair_pixels_total": int(hair_pixels_total),
         "hair_percentage_of_image": round(float(hair_percentage_of_image), 3),
+
+        # Hair only inside the lesion
+        "hair_pixels_inside_lesion": int(hair_pixels_inside_lesion),
         "hair_percentage_of_lesion": round(float(hair_percentage_of_lesion), 3),
+
         "hair_class": hair_class,
         "filtering_strategy": filtering_strategy,
 
@@ -336,10 +353,8 @@ def analyze_skin_lesion(image_path, output_folder="output"):
         "blackhat_threshold": 17,
         "inpaint_radius": 7,
         "min_hair_pixels_required": 50,
-        "min_hair_percentage_required": 0.02    
+        "min_hair_percentage_required": 0.02
     }
-
-    save_results_json(info, json_path)
 
     print(f"Finished: {image_path.name}")
     print(f"Hair class: {hair_class}")
@@ -365,7 +380,8 @@ def save_combined_csv(all_results, output_path):
 if __name__ == "__main__":
     # Hardcode your input and output folders here
     input_folder = Path("../data/imgs") 
-    output_folder = Path("../results/blackhat_output")
+    results_folder = Path("../results/blackhat_results")
+    images_folder = Path("../results/blackhat_images")
 
     if not input_folder.exists():
         raise FileNotFoundError(f"The input folder does not exist: {input_folder}")
@@ -373,7 +389,8 @@ if __name__ == "__main__":
     if not input_folder.is_dir():
         raise NotADirectoryError(f"This is not a folder: {input_folder}")
 
-    output_folder.mkdir(parents=True, exist_ok=True)
+    images_folder.mkdir(parents=True, exist_ok=True)
+    results_folder.mkdir(parents=True, exist_ok=True)
 
     image_files = [
         file for file in input_folder.iterdir()
@@ -392,7 +409,8 @@ if __name__ == "__main__":
         try:
             results = analyze_skin_lesion(
                 image_path=image_file,
-                output_folder=output_folder
+                images_folder=images_folder,
+                results_folder=results_folder
             )
 
             all_results.append(results)
@@ -400,8 +418,8 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Failed to process {image_file.name}: {e}")
 
-    combined_json_path = output_folder / "all_images_analysis.json"
-    combined_csv_path = output_folder / "all_images_analysis.csv"
+    combined_json_path = results_folder / "all_blackhat_analysis.json"
+    combined_csv_path = results_folder / "all_blackhat_analysis.csv"
 
     with open(combined_json_path, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=4)
@@ -410,6 +428,7 @@ if __name__ == "__main__":
 
     print("\nFinished processing images.")
     print(f"Number of successful images: {len(all_results)}")
-    print(f"Output folder: {output_folder}")
+    print(f"Processed images folder: {images_folder}")
+    print(f"Results folder: {results_folder}")
     print(f"Combined JSON saved to: {combined_json_path}")
     print(f"Combined CSV saved to: {combined_csv_path}")
