@@ -116,7 +116,7 @@ def clean_hair_with_tophat(
     image,
     kernel_size=17,
     threshold=18,
-    radius=3,
+    radius=1,
     min_hair_pixels=50,
     min_hair_percentage=0.02
 ):
