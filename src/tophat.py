@@ -302,10 +302,10 @@ def save_combined_csv(all_results, output_path):
 
 if __name__ == "__main__":
 
-    input_folder = Path("../results/blackhat_images")  # Process the cleaned images from blackhat step
+    input_folder = Path("../data/blackhat_images")  # Process the cleaned images from blackhat step
 
-    results_folder = Path("../results/tophat_results")
-    images_folder = Path("../results/tophat_images")
+    results_folder = Path("../data/tophat_results")
+    images_folder = Path("../data/tophat_images")
 
     if not input_folder.exists():
         raise FileNotFoundError(f"The input folder does not exist: {input_folder}")
