@@ -38,7 +38,7 @@ img_dir = data_path / "imgs"
 mask_dir = data_path / "masks_biggest_component"
 
 # Our CSV
-metadata = pd.read_csv(data_path / "metadata_biggest_component.csv")
+metadata = pd.read_csv(data_path / "metadata_biggest_component_features.csv")
 
 def load_image_and_mask(img_path, mask_path):
     image = io.imread(img_path)
