@@ -26,7 +26,7 @@ FEATURES = {
     }
 
 # Change the Feature name to choose yours
-FEATURE_NAME = "melanoma_colors"
+FEATURE_NAME = "get_asymmetry"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
