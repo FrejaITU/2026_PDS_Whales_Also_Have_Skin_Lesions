@@ -26,7 +26,7 @@ FEATURES = {
     }
 
 # Change the Feature name to choose yours
-FEATURE_NAME = "get_compactness"
+FEATURE_NAME = "hsv_variance"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
