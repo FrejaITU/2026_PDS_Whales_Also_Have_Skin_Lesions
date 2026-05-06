@@ -384,10 +384,10 @@ if __name__ == "__main__":
     input_folder = Path("../data/imgs")
 
     # Folder where JSON and CSV results will be saved.
-    results_folder = Path("../results/blackhat_results")
+    results_folder = Path("../data/blackhat_results")
 
     # Folder where generated images will be saved.
-    images_folder = Path("../results/blackhat_images")
+    images_folder = Path("../data/blackhat_images")
 
     # Check that the input folder exists.
     if not input_folder.exists():
