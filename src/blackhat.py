@@ -6,6 +6,13 @@ from pathlib import Path
 
 
 def load_image(image_path):
+    """
+    Load an image from the given file path.
+
+    OpenCV returns None if the image cannot be loaded,
+    so we check for that and raise an error.
+    """
+
     image = cv2.imread(str(image_path))
 
     if image is None:
@@ -16,16 +23,22 @@ def load_image(image_path):
 
 def segment_lesion(image):
     """
-    Approximate lesion segmentation using grayscale thresholding.
-    This works best when the lesion is darker than surrounding skin.
+    Create an approximate mask of the skin lesion.
+
+    This method assumes that the lesion is darker than the surrounding skin.
+    It converts the image to grayscale, thresholds the dark region,
+    cleans the mask, and keeps the largest detected region as the lesion.
     """
 
+    # Convert image from BGR color to grayscale.
+    # Thresholding is easier on one intensity channel.
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Smooth image to reduce noise
+    # Blur the image to reduce small noise before thresholding.
     blurred = cv2.GaussianBlur(gray, (7, 7), 0)
 
-    # Otsu thresholding
+    # Use Otsu thresholding to automatically separate dark and light areas.
+    # THRESH_BINARY_INV makes darker areas white in the mask.
     _, threshold = cv2.threshold(
         blurred,
         0,
@@ -33,30 +46,49 @@ def segment_lesion(image):
         cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
     )
 
-    # Morphological cleanup
+    # Create an elliptical kernel for morphological cleaning.
+    # Elliptical kernels fit lesion-like shapes better than square kernels.
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
+
+    # Opening removes small isolated noise.
     cleaned = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel)
+
+    # Closing fills small gaps or holes inside the lesion area.
     cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_CLOSE, kernel)
 
-    # Keep largest connected component as lesion
+    # Find all detected white regions in the cleaned binary mask.
     contours, _ = cv2.findContours(
         cleaned,
         cv2.RETR_EXTERNAL,
         cv2.CHAIN_APPROX_SIMPLE
     )
 
+    # Create an empty mask with the same height and width as the grayscale image.
     lesion_mask = np.zeros(gray.shape, dtype=np.uint8)
 
+    # If no contours are found, return an empty lesion mask.
     if len(contours) == 0:
         return lesion_mask
 
+    # Assume the largest detected region is the lesion.
     largest_contour = max(contours, key=cv2.contourArea)
+
+    # Fill the largest contour with white pixels.
     cv2.drawContours(lesion_mask, [largest_contour], -1, 255, thickness=-1)
 
     return lesion_mask
 
 
 def calculate_lesion_coverage(lesion_mask):
+    """
+    Calculate how much of the image is covered by the lesion.
+
+    Returns:
+    - lesion_pixels: number of white pixels in the lesion mask
+    - total_pixels: total number of pixels in the image
+    - coverage_percentage: percentage of the image covered by the lesion
+    """
+
     total_pixels = lesion_mask.shape[0] * lesion_mask.shape[1]
     lesion_pixels = cv2.countNonZero(lesion_mask)
 
@@ -64,59 +96,23 @@ def calculate_lesion_coverage(lesion_mask):
 
     return lesion_pixels, total_pixels, coverage_percentage
 
-def keep_hair_like_components(mask):
+
+def clean_hair_with_blackhat(
+    image,
+    kernel_size=17,
+    threshold=17,
+    radius=7,
+    min_hair_pixels=50,
+    min_hair_percentage=0.02
+):
     """
-    Keep only thin, hair-like connected components.
+    Detect and remove dark hair using black-hat filtering.
 
-    This prevents the lesion itself or large dark areas from being detected as hair.
-    """
-
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
-
-    cleaned_mask = np.zeros_like(mask)
-
-    for label in range(1, num_labels):
-        x, y, w, h, area = stats[label]
-
-        if area == 0:
-            continue
-
-        aspect_ratio = max(w, h) / max(1, min(w, h))
-
-        # Hair is usually thin and elongated.
-        # These values can be adjusted depending on your images.
-        is_long_enough = max(w, h) >= 8
-        is_thin_enough = min(w, h) <= 12
-        is_not_too_large = area <= 1200
-        is_line_like = aspect_ratio >= 2.0
-
-        if is_long_enough and is_thin_enough and is_not_too_large and is_line_like:
-            cleaned_mask[labels == label] = 255
-
-    return cleaned_mask
-
-def make_line_kernel(length, angle):
-    """
-    Create a thin line-shaped kernel rotated by angle degrees.
-    This is better for hair than a square kernel.
-    """
-    kernel = np.zeros((length, length), dtype=np.uint8)
-
-    center = length // 2
-    cv2.line(kernel, (center, 0), (center, length - 1), 1, 1)
-
-    rotation_matrix = cv2.getRotationMatrix2D((center, center), angle, 1.0)
-    rotated = cv2.warpAffine(kernel, rotation_matrix, (length, length))
-
-    rotated = (rotated > 0).astype(np.uint8)
-
-    return rotated
-
-def clean_hair_with_blackhat(image, kernel_size=17, threshold=17, radius=7, min_hair_pixels=50, min_hair_percentage=0.02):
-    """
-    Uses black-hat only if dark hair is detected.
+    This wrapper function converts the image to grayscale and then calls
+    removeHair(), which performs the actual black-hat detection and inpainting.
     """
 
+    # Convert to grayscale because black-hat morphology works on intensity.
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     (
@@ -137,76 +133,53 @@ def clean_hair_with_blackhat(image, kernel_size=17, threshold=17, radius=7, min_
         min_hair_percentage=min_hair_percentage
     )
 
-
-    return (blackhat, mask, cleaned_image, black_hair_detected, hair_pixels, hair_percentage, filtering_strategy)
-
-
-def classify_hair_amount(hair_mask, lesion_mask=None):
-    hair_pixels = cv2.countNonZero(hair_mask)
-    total_pixels = hair_mask.shape[0] * hair_mask.shape[1]
-
-    hair_percentage = (hair_pixels / total_pixels) * 100
-
-    if hair_percentage < 0.2:
-        hair_class = "none"
-    elif hair_percentage < 1.0:
-        hair_class = "small"
-    elif hair_percentage < 3.0:
-        hair_class = "medium"
-    else:
-        hair_class = "large"
-
-    return hair_pixels, hair_percentage, hair_class
+    return (
+        blackhat,
+        mask,
+        cleaned_image,
+        black_hair_detected,
+        hair_pixels,
+        hair_percentage,
+        filtering_strategy
+    )
 
 
-def choose_filtering_strategy(blackhat_mask, tophat_mask, hair_class):
-    blackhat_pixels = cv2.countNonZero(blackhat_mask)
-    tophat_pixels = cv2.countNonZero(tophat_mask)
-
-    if hair_class == "none":
-        return "none"
-
-    # For heavy hair, use both filters.
-    if hair_class == "large":
-        return "blackhat_and_tophat"
-
-    if blackhat_pixels == 0 and tophat_pixels == 0:
-        return "none"
-
-    if blackhat_pixels > tophat_pixels * 1.3:
-        return "blackhat"
-
-    if tophat_pixels > blackhat_pixels * 1.3:
-        return "tophat"
-
-    return "blackhat_and_tophat"
-
-
-def removeHair(img_org, img_gray, kernel_size=17, threshold=17, radius=7, min_hair_pixels=50, min_hair_percentage=0.02):
+def removeHair(
+    img_org,
+    img_gray,
+    kernel_size=17,
+    threshold=17,
+    radius=7,
+    min_hair_pixels=50,
+    min_hair_percentage=0.02
+):
     """
-    Detect dark hair using black-hat morphology.
+    Detect dark hairs and remove them if enough hair is present.
 
-    Only performs inpainting if enough black/dark hair is detected.
+    Black-hat morphology highlights dark thin structures on a lighter background.
+    This is useful for detecting dark hairs on skin.
 
-    min_hair_pixels:
-        Minimum number of detected hair pixels required.
-
-    min_hair_percentage:
-        Minimum percentage of the image detected as hair.
-        Example: 0.02 means 0.02% of the full image.
+    If enough hair pixels are detected, the code uses inpainting to replace
+    those pixels using nearby surrounding pixels.
     """
 
+    # Create a cross-shaped kernel for black-hat morphology.
+    # The kernel size controls the scale of structures that are detected.
     kernel = cv2.getStructuringElement(
         cv2.MORPH_CROSS,
         (kernel_size, kernel_size)
     )
 
+    # Apply black-hat filtering.
+    # This highlights dark structures such as hair.
     blackhat = cv2.morphologyEx(
         img_gray,
         cv2.MORPH_BLACKHAT,
         kernel
     )
 
+    # Threshold the black-hat image to create a binary hair mask.
+    # Pixels above the threshold are treated as hair.
     _, mask = cv2.threshold(
         blackhat,
         threshold,
@@ -214,16 +187,21 @@ def removeHair(img_org, img_gray, kernel_size=17, threshold=17, radius=7, min_ha
         cv2.THRESH_BINARY
     )
 
+    # Count how many pixels were detected as hair.
     hair_pixels = cv2.countNonZero(mask)
     total_pixels = mask.shape[0] * mask.shape[1]
     hair_percentage = (hair_pixels / total_pixels) * 100
 
+    # Only remove hair if enough hair pixels are detected.
+    # This avoids unnecessary inpainting when little or no hair exists.
     black_hair_detected = (
         hair_pixels >= min_hair_pixels and
         hair_percentage >= min_hair_percentage
     )
 
     if black_hair_detected:
+        # Inpaint the original image where the hair mask is white.
+        # TELEA fills masked pixels using nearby image information.
         img_out = cv2.inpaint(
             img_org,
             mask,
@@ -232,50 +210,55 @@ def removeHair(img_org, img_gray, kernel_size=17, threshold=17, radius=7, min_ha
         )
         filtering_strategy = "blackhat_cross_kernel"
     else:
+        # If no meaningful hair is detected, keep the original image unchanged.
         img_out = img_org.copy()
         filtering_strategy = "none_no_black_hair_detected"
 
     return blackhat, mask, img_out, black_hair_detected, hair_pixels, hair_percentage, filtering_strategy
 
 
-def save_results_json(info, output_path):
-    with open(output_path, "w") as f:
-        json.dump(info, f, indent=4)
-
-
-def save_results_csv(info, output_path):
-    with open(output_path, "w", newline="") as f:
-        writer = csv.writer(f)
-
-        writer.writerow(["Parameter", "Value"])
-
-        for key, value in info.items():
-            writer.writerow([key, value])
-
-
 def analyze_skin_lesion(image_path, images_folder, results_folder=None):
+    """
+    Analyze one skin lesion image.
+
+    The function:
+    1. Loads the image.
+    2. Segments the lesion.
+    3. Calculates lesion size.
+    4. Detects and removes dark hair.
+    5. Measures how much hair overlaps with the lesion.
+    6. Classifies hair amount as none, small, medium, or large.
+    7. Saves output images.
+    8. Returns all measurements in a dictionary.
+    """
+
     image_path = Path(image_path)
     images_folder = Path(images_folder)
     results_folder = Path(results_folder)
 
+    # Make sure output folders exist.
     images_folder.mkdir(parents=True, exist_ok=True)
     results_folder.mkdir(parents=True, exist_ok=True)
 
+    # Load original image.
     image = load_image(image_path)
 
+    # Create lesion mask.
     lesion_mask = segment_lesion(image)
 
+    # Calculate lesion coverage in the full image.
     lesion_pixels, total_pixels, lesion_coverage = calculate_lesion_coverage(
         lesion_mask
     )
 
+    # Detect hair and create a cleaned version of the image.
     (
-        blackhat_filtered, 
-        hair_mask, 
-        cleaned_image, 
-        black_hair_detected, 
-        hair_pixels, 
-        hair_percentage_of_image, 
+        blackhat_filtered,
+        hair_mask,
+        cleaned_image,
+        black_hair_detected,
+        hair_pixels,
+        hair_percentage_of_image,
         filtering_strategy
     ) = clean_hair_with_blackhat(
         image,
@@ -286,19 +269,23 @@ def analyze_skin_lesion(image_path, images_folder, results_folder=None):
         min_hair_percentage=0.02
     )
 
+    # Recalculate hair amount over the full image.
     hair_pixels_total = cv2.countNonZero(hair_mask)
     total_pixels = image.shape[0] * image.shape[1]
 
     hair_percentage_of_image = (hair_pixels_total / total_pixels) * 100
 
+    # Find hair pixels that are inside the lesion area.
     hair_mask_inside_lesion = cv2.bitwise_and(hair_mask, lesion_mask)
     hair_pixels_inside_lesion = cv2.countNonZero(hair_mask_inside_lesion)
 
+    # Calculate hair percentage relative to the lesion area.
     if lesion_pixels > 0:
         hair_percentage_of_lesion = (hair_pixels_inside_lesion / lesion_pixels) * 100
     else:
         hair_percentage_of_lesion = 0
 
+    # Classify hair amount based on how much of the lesion is covered by hair.
     if hair_percentage_of_lesion < 0.5:
         hair_class = "none"
     elif hair_percentage_of_lesion < 2.0:
@@ -308,25 +295,24 @@ def analyze_skin_lesion(image_path, images_folder, results_folder=None):
     else:
         hair_class = "large"
 
+    # Use the original filename without extension for output names.
     base_name = image_path.stem
 
+    # Define output paths for generated images.
     cleaned_image_path = images_folder / f"{base_name}_cleaned.png"
     lesion_mask_path = images_folder / f"{base_name}_lesion_mask.png"
     hair_mask_path = images_folder / f"{base_name}_hair_mask.png"
     blackhat_filtered_path = images_folder / f"{base_name}_blackhat_filtered.png"
-    json_path = results_folder / f"{base_name}_analysis.json"
 
+    # Save generated images.
     cv2.imwrite(str(cleaned_image_path), cleaned_image)
     cv2.imwrite(str(lesion_mask_path), lesion_mask)
     cv2.imwrite(str(hair_mask_path), hair_mask)
     cv2.imwrite(str(blackhat_filtered_path), blackhat_filtered)
 
+    # Store file paths, measurements, classifications, and parameters.
     info = {
         "input_image": str(image_path),
-        "cleaned_image": str(cleaned_image_path),
-        "lesion_mask": str(lesion_mask_path),
-        "hair_mask": str(hair_mask_path),
-        "blackhat_filtered_image": str(blackhat_filtered_path),
 
         "image_width": image.shape[1],
         "image_height": image.shape[0],
@@ -334,21 +320,17 @@ def analyze_skin_lesion(image_path, images_folder, results_folder=None):
         "lesion_pixels": int(lesion_pixels),
         "lesion_coverage_percentage": round(float(lesion_coverage), 3),
 
-        # Hair detection / cleaning results
         "black_hair_detected": bool(black_hair_detected),
 
-        # Hair over the whole image
         "hair_pixels_total": int(hair_pixels_total),
         "hair_percentage_of_image": round(float(hair_percentage_of_image), 3),
 
-        # Hair only inside the lesion
         "hair_pixels_inside_lesion": int(hair_pixels_inside_lesion),
         "hair_percentage_of_lesion": round(float(hair_percentage_of_lesion), 3),
 
         "hair_class": hair_class,
         "filtering_strategy": filtering_strategy,
 
-        # Parameters used
         "blackhat_kernel_size": 17,
         "blackhat_threshold": 17,
         "inpaint_radius": 7,
@@ -357,15 +339,22 @@ def analyze_skin_lesion(image_path, images_folder, results_folder=None):
     }
 
     print(f"Finished: {image_path.name}")
-    print(f"Hair class: {hair_class}")
-    print("Filtering used: blackhat_cross_kernel")
 
     return info
 
+
 def save_combined_csv(all_results, output_path):
+    """
+    Save all image analysis results into one CSV file.
+
+    Each row is one processed image.
+    Each column is one stored measurement, file path, or parameter.
+    """
+
     if len(all_results) == 0:
         return
 
+    # Use the dictionary keys as CSV column names.
     fieldnames = list(all_results[0].keys())
 
     with open(output_path, "w", newline="", encoding="utf-8") as f:
@@ -378,31 +367,55 @@ def save_combined_csv(all_results, output_path):
 
 
 if __name__ == "__main__":
-    # Hardcode your input and output folders here
-    input_folder = Path("../data/imgs") 
+    """
+    Main script.
+
+    This part runs when the file is executed directly.
+    It processes every image in the input folder and saves:
+    - cleaned images
+    - lesion masks
+    - hair masks
+    - black-hat filtered images
+    - combined JSON results
+    - combined CSV results
+    """
+
+    # Folder containing the original images.
+    input_folder = Path("../data/imgs")
+
+    # Folder where JSON and CSV results will be saved.
     results_folder = Path("../results/blackhat_results")
+
+    # Folder where generated images will be saved.
     images_folder = Path("../results/blackhat_images")
 
+    # Check that the input folder exists.
     if not input_folder.exists():
         raise FileNotFoundError(f"The input folder does not exist: {input_folder}")
 
+    # Check that the input path is actually a folder.
     if not input_folder.is_dir():
         raise NotADirectoryError(f"This is not a folder: {input_folder}")
 
+    # Create output folders if they do not exist.
     images_folder.mkdir(parents=True, exist_ok=True)
     results_folder.mkdir(parents=True, exist_ok=True)
 
+    # Collect all supported image files from the input folder.
     image_files = [
         file for file in input_folder.iterdir()
         if file.suffix.lower() in [".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"]
     ]
 
+    # Stop the script if no image files are found.
     if len(image_files) == 0:
         print("No image files found in the input folder.")
         exit()
 
+    # This list stores the result dictionary from each successfully processed image.
     all_results = []
 
+    # Process each image one at a time.
     for image_file in image_files:
         print(f"\nProcessing: {image_file.name}")
 
@@ -416,14 +429,18 @@ if __name__ == "__main__":
             all_results.append(results)
 
         except Exception as e:
+            # If one image fails, print the error and continue with the next image.
             print(f"Failed to process {image_file.name}: {e}")
 
+    # Define combined result output files.
     combined_json_path = results_folder / "all_blackhat_analysis.json"
     combined_csv_path = results_folder / "all_blackhat_analysis.csv"
 
+    # Save all results together as JSON.
     with open(combined_json_path, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=4)
 
+    # Save all results together as CSV.
     save_combined_csv(all_results, combined_csv_path)
 
     print("\nFinished processing images.")

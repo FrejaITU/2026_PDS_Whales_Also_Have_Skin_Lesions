@@ -6,6 +6,10 @@ from pathlib import Path
 
 
 def load_image(image_path):
+    """
+    Load an image from the given file path.
+    """
+
     image = cv2.imread(str(image_path))
 
     if image is None:
@@ -16,16 +20,15 @@ def load_image(image_path):
 
 def segment_lesion(image):
     """
-    Approximate lesion segmentation using grayscale thresholding.
-    This works best when the lesion is darker than surrounding skin.
+    Create an approximate mask of the skin lesion.
+
+    This method assumes that the lesion is darker than the surrounding skin.
     """
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Smooth image to reduce noise
     blurred = cv2.GaussianBlur(gray, (7, 7), 0)
 
-    # Otsu thresholding
     _, threshold = cv2.threshold(
         blurred,
         0,
@@ -33,12 +36,10 @@ def segment_lesion(image):
         cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU
     )
 
-    # Morphological cleanup
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9, 9))
     cleaned = cv2.morphologyEx(threshold, cv2.MORPH_OPEN, kernel)
     cleaned = cv2.morphologyEx(cleaned, cv2.MORPH_CLOSE, kernel)
 
-    # Keep largest connected component as lesion
     contours, _ = cv2.findContours(
         cleaned,
         cv2.RETR_EXTERNAL,
@@ -57,6 +58,10 @@ def segment_lesion(image):
 
 
 def calculate_lesion_coverage(lesion_mask):
+    """
+    Calculate how much of the image is covered by the lesion.
+    """
+
     total_pixels = lesion_mask.shape[0] * lesion_mask.shape[1]
     lesion_pixels = cv2.countNonZero(lesion_mask)
 
@@ -64,64 +69,17 @@ def calculate_lesion_coverage(lesion_mask):
 
     return lesion_pixels, total_pixels, coverage_percentage
 
-def keep_hair_like_components(mask):
-    """
-    Keep only thin, hair-like connected components.
-
-    This prevents the lesion itself or large dark areas from being detected as hair.
-    """
-
-    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
-
-    cleaned_mask = np.zeros_like(mask)
-
-    for label in range(1, num_labels):
-        x, y, w, h, area = stats[label]
-
-        if area == 0:
-            continue
-
-        aspect_ratio = max(w, h) / max(1, min(w, h))
-
-        # Hair is usually thin and elongated.
-        # These values can be adjusted depending on your images.
-        is_long_enough = max(w, h) >= 8
-        is_thin_enough = min(w, h) <= 12
-        is_not_too_large = area <= 1200
-        is_line_like = aspect_ratio >= 2.0
-
-        if is_long_enough and is_thin_enough and is_not_too_large and is_line_like:
-            cleaned_mask[labels == label] = 255
-
-    return cleaned_mask
-
-def make_line_kernel(length, angle):
-    """
-    Create a thin line-shaped kernel rotated by angle degrees.
-    This is better for hair than a square kernel.
-    """
-    kernel = np.zeros((length, length), dtype=np.uint8)
-
-    center = length // 2
-    cv2.line(kernel, (center, 0), (center, length - 1), 1, 1)
-
-    rotation_matrix = cv2.getRotationMatrix2D((center, center), angle, 1.0)
-    rotated = cv2.warpAffine(kernel, rotation_matrix, (length, length))
-
-    rotated = (rotated > 0).astype(np.uint8)
-
-    return rotated
 
 def clean_hair_with_tophat(
     image,
     kernel_size=17,
-    threshold=18,
-    radius=1,
+    threshold=12,
+    radius=5,
     min_hair_pixels=50,
     min_hair_percentage=0.02
 ):
     """
-    Uses top-hat only if light/white hair is detected.
+    Detect and remove light/white hair using top-hat filtering.
     """
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -155,47 +113,6 @@ def clean_hair_with_tophat(
     )
 
 
-def classify_hair_amount(hair_mask, lesion_mask=None):
-    hair_pixels = cv2.countNonZero(hair_mask)
-    total_pixels = hair_mask.shape[0] * hair_mask.shape[1]
-
-    hair_percentage = (hair_pixels / total_pixels) * 100
-
-    if hair_percentage < 0.2:
-        hair_class = "none"
-    elif hair_percentage < 1.0:
-        hair_class = "small"
-    elif hair_percentage < 3.0:
-        hair_class = "medium"
-    else:
-        hair_class = "large"
-
-    return hair_pixels, hair_percentage, hair_class
-
-
-def choose_filtering_strategy(blackhat_mask, tophat_mask, hair_class):
-    blackhat_pixels = cv2.countNonZero(blackhat_mask)
-    tophat_pixels = cv2.countNonZero(tophat_mask)
-
-    if hair_class == "none":
-        return "none"
-
-    # For heavy hair, use both filters.
-    if hair_class == "large":
-        return "blackhat_and_tophat"
-
-    if blackhat_pixels == 0 and tophat_pixels == 0:
-        return "none"
-
-    if blackhat_pixels > tophat_pixels * 1.3:
-        return "blackhat"
-
-    if tophat_pixels > blackhat_pixels * 1.3:
-        return "tophat"
-
-    return "blackhat_and_tophat"
-
-
 def removeHairTophat(
     img_org,
     img_gray,
@@ -206,11 +123,9 @@ def removeHairTophat(
     min_hair_percentage=0.02
 ):
     """
-    Detect light/white hair using top-hat morphology.
+    Detect light hairs and remove them if enough hair is present.
 
-    Only performs inpainting if enough light hair is detected.
-
-    Top-hat is useful for bright hairs on a darker background.
+    Top-hat morphology highlights bright thin structures on a darker background.
     """
 
     kernel = cv2.getStructuringElement(
@@ -263,25 +178,17 @@ def removeHairTophat(
     )
 
 
-def save_results_json(info, output_path):
-    with open(output_path, "w") as f:
-        json.dump(info, f, indent=4)
+def analyze_skin_lesion(image_path, images_folder, results_folder=None):
+    """
+    Analyze one skin lesion image using top-hat hair removal.
+    """
 
-
-def save_results_csv(info, output_path):
-    with open(output_path, "w", newline="") as f:
-        writer = csv.writer(f)
-
-        writer.writerow(["Parameter", "Value"])
-
-        for key, value in info.items():
-            writer.writerow([key, value])
-
-
-def analyze_skin_lesion(image_path, output_folder="output"):
     image_path = Path(image_path)
-    output_folder = Path(output_folder)
-    output_folder.mkdir(parents=True, exist_ok=True)
+    images_folder = Path(images_folder)
+    results_folder = Path(results_folder)
+
+    images_folder.mkdir(parents=True, exist_ok=True)
+    results_folder.mkdir(parents=True, exist_ok=True)
 
     image = load_image(image_path)
 
@@ -308,8 +215,16 @@ def analyze_skin_lesion(image_path, output_folder="output"):
         min_hair_percentage=0.02
     )
 
+    hair_pixels_total = cv2.countNonZero(hair_mask)
+    total_pixels = image.shape[0] * image.shape[1]
+
+    hair_percentage_of_image = (hair_pixels_total / total_pixels) * 100
+
+    hair_mask_inside_lesion = cv2.bitwise_and(hair_mask, lesion_mask)
+    hair_pixels_inside_lesion = cv2.countNonZero(hair_mask_inside_lesion)
+
     if lesion_pixels > 0:
-        hair_percentage_of_lesion = (hair_pixels / lesion_pixels) * 100
+        hair_percentage_of_lesion = (hair_pixels_inside_lesion / lesion_pixels) * 100
     else:
         hair_percentage_of_lesion = 0
 
@@ -324,11 +239,10 @@ def analyze_skin_lesion(image_path, output_folder="output"):
 
     base_name = image_path.stem
 
-    cleaned_image_path = output_folder / f"{base_name}_cleaned.png"
-    lesion_mask_path = output_folder / f"{base_name}_lesion_mask.png"
-    hair_mask_path = output_folder / f"{base_name}_hair_mask.png"
-    tophat_filtered_path = output_folder / f"{base_name}_tophat_filtered.png"
-    json_path = output_folder / f"{base_name}_analysis.json"
+    cleaned_image_path = images_folder / f"{base_name}_cleaned.png"
+    lesion_mask_path = images_folder / f"{base_name}_lesion_mask.png"
+    hair_mask_path = images_folder / f"{base_name}_hair_mask.png"
+    tophat_filtered_path = images_folder / f"{base_name}_tophat_filtered.png"
 
     cv2.imwrite(str(cleaned_image_path), cleaned_image)
     cv2.imwrite(str(lesion_mask_path), lesion_mask)
@@ -337,10 +251,6 @@ def analyze_skin_lesion(image_path, output_folder="output"):
 
     info = {
         "input_image": str(image_path),
-        "cleaned_image": str(cleaned_image_path),
-        "lesion_mask": str(lesion_mask_path),
-        "hair_mask": str(hair_mask_path),
-        "tophat_filtered_image": str(tophat_filtered_path),
 
         "image_width": image.shape[1],
         "image_height": image.shape[0],
@@ -348,15 +258,17 @@ def analyze_skin_lesion(image_path, output_folder="output"):
         "lesion_pixels": int(lesion_pixels),
         "lesion_coverage_percentage": round(float(lesion_coverage), 3),
 
-        # Hair detection / cleaning results
         "light_hair_detected": bool(light_hair_detected),
-        "hair_pixels": int(hair_pixels),
+
+        "hair_pixels_total": int(hair_pixels_total),
         "hair_percentage_of_image": round(float(hair_percentage_of_image), 3),
+
+        "hair_pixels_inside_lesion": int(hair_pixels_inside_lesion),
         "hair_percentage_of_lesion": round(float(hair_percentage_of_lesion), 3),
+
         "hair_class": hair_class,
         "filtering_strategy": filtering_strategy,
 
-        # Parameters used
         "tophat_kernel_size": 17,
         "tophat_threshold": 12,
         "inpaint_radius": 5,
@@ -364,15 +276,16 @@ def analyze_skin_lesion(image_path, output_folder="output"):
         "min_hair_percentage_required": 0.02
     }
 
-    save_results_json(info, json_path)
-
     print(f"Finished: {image_path.name}")
-    print(f"Hair class: {hair_class}")
-    print(f"Filtering used: {filtering_strategy}")
 
     return info
 
+
 def save_combined_csv(all_results, output_path):
+    """
+    Save all image analysis results into one CSV file.
+    """
+
     if len(all_results) == 0:
         return
 
@@ -388,9 +301,11 @@ def save_combined_csv(all_results, output_path):
 
 
 if __name__ == "__main__":
-    # Hardcode your input and output folders here
-    input_folder = Path("../results/blackhat_output")  # Change this to your actual input folder containing images
-    output_folder = Path("../results/tophat_output")
+
+    input_folder = Path("../results/blackhat_images")  # Process the cleaned images from blackhat step
+
+    results_folder = Path("../results/tophat_results")
+    images_folder = Path("../results/tophat_images")
 
     if not input_folder.exists():
         raise FileNotFoundError(f"The input folder does not exist: {input_folder}")
@@ -398,7 +313,8 @@ if __name__ == "__main__":
     if not input_folder.is_dir():
         raise NotADirectoryError(f"This is not a folder: {input_folder}")
 
-    output_folder.mkdir(parents=True, exist_ok=True)
+    images_folder.mkdir(parents=True, exist_ok=True)
+    results_folder.mkdir(parents=True, exist_ok=True)
 
     image_files = [
         file for file in input_folder.iterdir()
@@ -417,7 +333,8 @@ if __name__ == "__main__":
         try:
             results = analyze_skin_lesion(
                 image_path=image_file,
-                output_folder=output_folder
+                images_folder=images_folder,
+                results_folder=results_folder
             )
 
             all_results.append(results)
@@ -425,8 +342,8 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Failed to process {image_file.name}: {e}")
 
-    combined_json_path = output_folder / "all_images_analysis.json"
-    combined_csv_path = output_folder / "all_images_analysis.csv"
+    combined_json_path = results_folder / "all_tophat_analysis.json"
+    combined_csv_path = results_folder / "all_tophat_analysis.csv"
 
     with open(combined_json_path, "w", encoding="utf-8") as f:
         json.dump(all_results, f, indent=4)
@@ -435,6 +352,7 @@ if __name__ == "__main__":
 
     print("\nFinished processing images.")
     print(f"Number of successful images: {len(all_results)}")
-    print(f"Output folder: {output_folder}")
+    print(f"Processed images folder: {images_folder}")
+    print(f"Results folder: {results_folder}")
     print(f"Combined JSON saved to: {combined_json_path}")
     print(f"Combined CSV saved to: {combined_csv_path}")
