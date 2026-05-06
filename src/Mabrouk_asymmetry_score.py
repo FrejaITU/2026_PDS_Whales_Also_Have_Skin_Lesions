@@ -84,5 +84,5 @@ def Mabrouk_asymmetry(image, mask):
     score = int(AI1 > 1) + int(AI2 > 1)
 
     return {
-        "score:": score
+        "mabrouk_asymmetry_score": score
     }

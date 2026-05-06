@@ -1,3 +1,10 @@
 data/masks
 data/imgs
 data/binary_masks
+data/masks_biggest_component
+data/masks_top3_split_components
+
+data/blackhat_images
+data/blackhat_results
+data/tophat_images
+data/tophat_results
