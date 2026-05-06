@@ -26,7 +26,7 @@ FEATURES = {
     }
 
 # Change the Feature name to choose yours
-FEATURE_NAME = "mabrouk_asymmetry"
+FEATURE_NAME = "melanoma_colors"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
@@ -38,10 +38,10 @@ img_dir = data_path / "imgs"
 # for original masks
 #mask_dir = data_path / "masks"
 # for new masks
-mask_dir = data_path / "masks_biggest_component"
+mask_dir = data_path / "masks_top3_split_components"
 
 # Our CSV
-metadata = pd.read_csv(data_path / "metadata_biggest_component_features.csv")
+metadata = pd.read_csv(data_path / "metadata_top3_split_components_features.csv")
 
 def load_image_and_mask(img_path, mask_path):
     image = io.imread(img_path)
@@ -97,5 +97,5 @@ for i, patient in enumerate(metadata.itertuples(), start=1):
             metadata[column_name] = pd.NA
         metadata.at[idx, column_name] = value
 
-metadata.to_csv(data_path / "metadata_biggest_component_features.csv", index=False)
+metadata.to_csv(data_path / "metadata_top3_split_components_features.csv", index=False)
 print(f"Finished running feature: {FEATURE_NAME}")
