@@ -36,12 +36,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 data_path = BASE_DIR / "data"
 img_dir = data_path / "imgs"
 # for original masks
-#mask_dir = data_path / "masks"
+mask_dir = data_path / "masks"
 # for new masks
-mask_dir = data_path / "metadata_biggest_component"
+#mask_dir = data_path / "masks_biggest_component"
 
 # Our CSV
-metadata = pd.read_csv(data_path / "metadata_biggest_component_features.csv")
+metadata = pd.read_csv(data_path / "metadata_(for_scores).csv")
 
 def load_image_and_mask(img_path, mask_path):
     image = io.imread(img_path)
@@ -68,9 +68,9 @@ for i, patient in enumerate(metadata.itertuples(), start=1):
 
     current_img_path = img_dir / img_id
     # Use when component masks and newly created metadata files
-    current_mask_path = mask_dir / patient.component_mask
+    #current_mask_path = mask_dir / patient.component_mask
     # Use when only original masks and orignial metadata_(for_score).csv
-    #current_mask_path = mask_dir / f"{Path(img_id).stem}_mask.png"
+    current_mask_path = mask_dir / f"{Path(img_id).stem}_mask.png"
 
     if not current_img_path.exists():
         print("Missing image:", img_id)
@@ -97,5 +97,5 @@ for i, patient in enumerate(metadata.itertuples(), start=1):
             metadata[column_name] = pd.NA
         metadata.at[idx, column_name] = value
 
-metadata.to_csv(data_path / "metadata_biggest_component_features.csv", index=False)
+metadata.to_csv(data_path / "metadata_(for_scores).csv", index=False)
 print(f"Finished running feature: {FEATURE_NAME}")
