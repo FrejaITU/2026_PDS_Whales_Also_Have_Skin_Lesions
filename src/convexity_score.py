@@ -12,11 +12,11 @@ def convexity_score(image, mask):
 
     if convex_hull_area == 0:
         return {
-            "convexity_score": np.nan,
+            "convexity_score": np.nan
         }
 
     convexity = lesion_area / convex_hull_area
 
     return {
-        "convexity_score": convexity,
+        "convexity_score": convexity
     }
