@@ -36,4 +36,7 @@ def get_asymmetry(image, mask):
 def crop(mask):
     y, x = np.nonzero(mask)
 
+    if len(y) == 0:
+        return None
+
     return mask[y.min():y.max() + 1, x.min():x.max() + 1]
