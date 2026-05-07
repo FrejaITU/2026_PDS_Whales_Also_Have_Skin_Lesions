@@ -9,7 +9,7 @@ def get_compactness(image, mask):
     mask_eroded = morphology.binary_erosion(mask, struct_el)
     perimeter = np.sum(mask ^ mask_eroded)
 
-    compact = perimeter**2 / (4 * np.pi * area)
+    compact = (4 * np.pi * area)/ perimeter**2 
     return {
         "Polsby-Popper": compact
     }
