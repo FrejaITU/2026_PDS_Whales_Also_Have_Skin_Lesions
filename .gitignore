@@ -8,3 +8,7 @@ data/blackhat_images
 data/blackhat_results
 data/tophat_images
 data/tophat_results
+
+data/hair_removal_masks
+data/imgs_hair_removed
+data/plots
