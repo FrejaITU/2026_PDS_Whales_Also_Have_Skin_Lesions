@@ -26,7 +26,7 @@ FEATURES = {
     }
 
 # Change the Feature name to choose yours
-FEATURE_NAME = "hsv_variance"
+FEATURE_NAME = "mabrouk_asymmetry"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
