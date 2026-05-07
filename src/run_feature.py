@@ -14,6 +14,7 @@ import get_asymmetry as ga
 import get_compactness as gc
 import hsv_variance as hsvv
 import Mabrouk_asymmetry_score as mba
+import convexity_score as cs
 
 ### Add it to a dictonary
 FEATURES = {
@@ -22,11 +23,12 @@ FEATURES = {
     "get_asymmetry": ga.get_asymmetry,
     "get_compactness": gc.get_compactness,
     "hsv_variance": hsvv.hsv_var_score,
-    "mabrouk_asymmetry": mba.Mabrouk_asymmetry
+    "mabrouk_asymmetry": mba.Mabrouk_asymmetry,
+    "convexity": cs.convexity_score
     }
 
 # Change the Feature name to choose yours
-FEATURE_NAME = "get_compactness"
+FEATURE_NAME = "convexity"
 FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
