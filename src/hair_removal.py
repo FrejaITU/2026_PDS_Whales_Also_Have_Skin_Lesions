@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import os
 import pandas as pd
+from pathlib import Path
 
 
 def load_image(path):
@@ -118,15 +119,19 @@ def process_folder(image_folder, csv_path, output_folder, output_mask_folder):
             print("Skipping:", e)
 
 
-if __name__ == "__main__":
-    image_folder = "../data/imgs"
-    csv_path = "../data/hair_coverage.csv"
-    output_folder = "../data/imgs_hair_removed"
-    output_mask_folder = "../data/hair_removal_masks"
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATA_DIR = BASE_DIR / "data"
 
-    process_folder(
-        image_folder,
-        csv_path,
-        output_folder,
-        output_mask_folder
-    )
+image_folder = DATA_DIR / "imgs"
+mask_folder = DATA_DIR / "masks"
+csv_path = DATA_DIR / "hair_coverage.csv"
+output_mask_folder = DATA_DIR / "masks_hair_removed"
+
+output_mask_folder.mkdir(parents=True, exist_ok=True)
+
+process_folder(
+    image_folder,
+    mask_folder,
+    output_mask_folder,
+    csv_path
+)
