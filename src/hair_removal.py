@@ -130,8 +130,8 @@ output_mask_folder = DATA_DIR / "masks_hair_removed"
 output_mask_folder.mkdir(parents=True, exist_ok=True)
 
 process_folder(
-    image_folder,
-    mask_folder,
-    output_mask_folder,
-    csv_path
+    image_folder=image_folder,
+    mask_folder=mask_folder,
+    output_folder=output_mask_folder,
+    csv_path=csv_path
 )
