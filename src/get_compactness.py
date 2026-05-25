@@ -1,15 +1,17 @@
 import numpy as np
-from skimage import morphology
+from skimage.measure import perimeter
 
-def get_compactness(image, mask):
-    """Gives polsby-popper score, how much does the shape deviate from a perfect circle."""
+def get_compactness(mask):
+    """Compute Polsby-Popper compactness score."""
+    
     area = np.sum(mask)
-
-    struct_el = morphology.disk(3)
-    mask_eroded = morphology.binary_erosion(mask, struct_el)
-    perimeter = np.sum(mask ^ mask_eroded)
-
-    compact = (4 * np.pi * area)/ perimeter**2 
+    perim = perimeter(mask)
+    
+    if perim == 0:
+        return {"Polsby-Popper": 0}
+    
+    compact = (4 * np.pi * area) / (perim ** 2)
+    
     return {
         "Polsby-Popper": compact
-    }
+}
