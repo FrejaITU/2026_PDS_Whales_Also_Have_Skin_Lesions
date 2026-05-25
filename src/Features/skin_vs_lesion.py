@@ -9,8 +9,9 @@ DATA_DIR = BASE_DIR / "data"
 
 IMG_DIR = DATA_DIR / "imgs"
 ORIGINAL_MASK_DIR = DATA_DIR / "masks"
+COMPONENT_MASK_DIR = DATA_DIR / "masks_biggest_component"
 
-CSV_PATH = DATA_DIR / "metadata_(for_scores).csv"
+CSV_PATH = DATA_DIR / "metadata_biggest_component_features.csv"
 
 
 FEATURE_COLUMNS = [
@@ -88,26 +89,28 @@ for i, row in metadata.iterrows():
         print(f"Processed {i + 1} rows")
 
     image_path = IMG_DIR / row["img_id"]
-    original_mask_path = ORIGINAL_MASK_DIR / f"{Path(row['img_id']).stem}_mask.png"
+    original_mask_path = ORIGINAL_MASK_DIR / row["original_mask"]
+    component_mask_path = COMPONENT_MASK_DIR / row["component_mask"]
 
     if not image_path.exists():
         print("Missing image:", image_path)
         continue
 
     if not original_mask_path.exists():
-        print("Missing mask:", original_mask_path)
+        print("Missing original mask:", original_mask_path)
+        continue
+
+    if not component_mask_path.exists():
+        print("Missing component mask:", component_mask_path)
         continue
 
     image = load_image(image_path)
     original_mask = load_mask(original_mask_path)
-
-    if image.shape[:2] != original_mask.shape:
-        print("Skipping shape mismatch:", image_path.name)
-        continue
+    component_mask = load_mask(component_mask_path)
 
     result = rgb_features(
         image=image,
-        lesion_mask=original_mask,
+        lesion_mask=component_mask,
         original_mask=original_mask,
     )
 
