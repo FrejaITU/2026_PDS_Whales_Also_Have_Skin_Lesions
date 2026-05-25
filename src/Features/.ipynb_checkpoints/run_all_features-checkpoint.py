@@ -31,9 +31,6 @@ FEATURES = {
     "new_get_asymmetry": nga.get_asymmetry
     }
 
-# Change the Feature name to choose yours
-FEATURE_NAME = "convexity"
-FEATURE_FUNCTION = FEATURES[FEATURE_NAME]
 
 # --------------------------------------------------
 # Paths
@@ -63,6 +60,8 @@ def load_image_and_mask(img_path, mask_path):
         image = image[:, :, :3]
 
     return image, mask
+
+csv_name = input("Output CSV name (omit .csv): ")
 
 for i, patient in enumerate(metadata.itertuples(), start=1):
     if i % 25 == 0:
@@ -95,12 +94,14 @@ for i, patient in enumerate(metadata.itertuples(), start=1):
         print("Skipping (empty mask):", current_img_path.name)
         continue
 
-    result = FEATURE_FUNCTION(image, mask)
-
-    for column_name, value in result.items():
-        if column_name not in metadata.columns:
-            metadata[column_name] = pd.NA
-        metadata.at[idx, column_name] = value
+    for feature, function in FEATURES:
+        result = function(image, mask)
     
-metadata.to_csv(data_path / "metadata_top3_split_components_features.csv", index=False)
-print(f"Finished running feature: {FEATURE_NAME}")
+        for column_name, value in result.items():
+            if column_name not in metadata.columns:
+                metadata[column_name] = pd.NA
+            metadata.at[idx, column_name] = value
+        
+    
+metadata.to_csv(data_path / csv_name + ".csv", index=False)
+print("Finished running all features")
