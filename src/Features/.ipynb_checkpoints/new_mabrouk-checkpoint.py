@@ -9,10 +9,6 @@ from skimage.measure import regionprops
 from skimage.segmentation import find_boundaries
 from skimage.transform import rotate
 from scipy.ndimage import shift
-import matplotlib.pyplot as plt
-
-mask = plt.imread("../data/masks_biggest_component/PAT_1855_3641_327_mask.png")
-mask = mask > 0
 
 def crop(mask):
     y, x = np.nonzero(mask)
@@ -100,8 +96,6 @@ def delta_A(mask, reflected):
     """Computes the non-overlapping area"""
 
     xor = np.logical_xor(mask, reflected)
-    plt.imshow(xor)
-    plt.show()
     return xor.sum()
 
 def Mabrouk_asymmetry(image, mask):

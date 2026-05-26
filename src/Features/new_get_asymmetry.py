@@ -7,9 +7,7 @@
 import numpy as np
 from skimage.measure import regionprops
 from skimage.transform import rotate
-import matplotlib.pyplot as plt
-
-mask = plt.imread("../data/masks_biggest_component/PAT_1855_3641_327_mask.png") > 0
+from scipy.ndimage import shift
 
 def get_asymmetry(image, mask):
     mask = np.asarray(mask) > 0
@@ -19,10 +17,7 @@ def get_asymmetry(image, mask):
     scores = []
 
     for _ in range(6):
-        plt.imshow(mask)
-        plt.show()
-
-        if segment is not None:
+        if mask is not None:
             flipped = np.fliplr(mask)
 
             difference = np.logical_xor(mask, flipped)
@@ -47,10 +42,8 @@ def get_asymmetry(image, mask):
 
 def crop(mask):
     y, x = np.nonzero(mask)
-
     if len(y) == 0:
         return None
-
     return mask[y.min():y.max() + 1, x.min():x.max() + 1]
 
 
