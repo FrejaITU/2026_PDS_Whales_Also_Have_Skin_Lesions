@@ -9,9 +9,9 @@ DATA_DIR = BASE_DIR / "data"
 
 IMG_DIR = DATA_DIR / "imgs"
 ORIGINAL_MASK_DIR = DATA_DIR / "masks"
-COMPONENT_MASK_DIR = DATA_DIR / "masks_biggest_component"
+COMPONENT_MASK_DIR = DATA_DIR / "masks_top3_split_components"
 
-CSV_PATH = DATA_DIR / "metadata_biggest_component_features.csv"
+CSV_PATH = DATA_DIR / "metadata_top3_split_components_features.csv"
 
 
 FEATURE_COLUMNS = [
