@@ -8,7 +8,6 @@ from skimage.morphology import remove_small_objects
 # Change only this block when you want a new feature
 # --------------------------------------------------
 ### import your script like you would a libary
-import mask_components as mc
 import melanoma_colors as mcf
 import get_asymmetry as ga
 import get_compactness as gc
@@ -20,14 +19,13 @@ import new_get_asymmetry as nga
 
 ### Add it to a dictonary
 FEATURES = {
-    "mask_components": mc.mask_components_score,
     "melanoma_colors": mcf.melanoma_colors_score,
     "get_asymmetry": ga.get_asymmetry,
     "get_compactness": gc.get_compactness,
     "hsv_variance": hsvv.hsv_var_score,
     "mabrouk_asymmetry": mba.Mabrouk_asymmetry,
     "convexity": cs.convexity_score,
-    "new_mabrouk": nmba.Mabroyk_asymmetry,
+    "new_mabrouk": nmba.Mabrouk_asymmetry,
     "new_get_asymmetry": nga.get_asymmetry
     }
 
@@ -36,7 +34,7 @@ FEATURES = {
 # Paths
 # --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
-data_path = BASE_DIR / "data"
+data_path = BASE_DIR / "../data"
 img_dir = data_path / "imgs"
 # for original masks
 #mask_dir = data_path / "masks"
@@ -64,8 +62,9 @@ def load_image_and_mask(img_path, mask_path):
 csv_name = input("Output CSV name (omit .csv): ")
 
 for i, patient in enumerate(metadata.itertuples(), start=1):
-    if i % 25 == 0:
-        print(f"Processed {i} rows.")
+    print(f"Processed row {i}.")
+    #if i % 25 == 0:
+        #print(f"Processed {i} rows.")
 
     idx = patient.Index
     img_id = patient.img_id
@@ -94,7 +93,7 @@ for i, patient in enumerate(metadata.itertuples(), start=1):
         print("Skipping (empty mask):", current_img_path.name)
         continue
 
-    for feature, function in FEATURES:
+    for feature, function in FEATURES.items():
         result = function(image, mask)
     
         for column_name, value in result.items():
