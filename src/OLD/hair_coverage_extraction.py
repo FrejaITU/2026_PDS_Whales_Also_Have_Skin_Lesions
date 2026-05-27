@@ -9,8 +9,8 @@ base_dir = Path(__file__).resolve().parent
 # LOAD IMAGE + MASK
 # ---------------------------------------------------
 
-image_path = "../data/imgs/PAT_108_161_423.png"
-mask_path = "../data/masks/PAT_108_161_423_mask.png"
+image_path = "../../data/imgs/PAT_108_161_423.png"
+mask_path = "../../data/masks/PAT_108_161_423_mask.png"
 
 image = cv2.imread(image_path)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

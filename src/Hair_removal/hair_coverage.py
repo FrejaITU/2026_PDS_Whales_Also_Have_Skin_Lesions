@@ -92,8 +92,8 @@ def process_folder(image_folder, mask_folder, output_csv):
 
 
 if __name__ == "__main__":
-    image_folder = "../data/imgs"
-    mask_folder = "../data/masks"
-    output_csv = "../data/hair_coverage.csv"
+    image_folder = "../../data/imgs"
+    mask_folder = "../../data/masks"
+    output_csv = "../../data/hair_coverage.csv"
 
     process_folder(image_folder, mask_folder, output_csv)
