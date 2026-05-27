@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 
-path = "..\..\data\Metadata_features\metadata_features.csv"
+path = "../../data/Metadata_features/metadata_features.csv"
 df = pd.read_csv(path)
 
 X = df[['melanoma_color_count', 'hue_variance',
@@ -14,9 +14,23 @@ X = df[['melanoma_color_count', 'hue_variance',
 y = df["skin_cancer_diagnosis"]
 
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
+patient_labels = df.groupby("patient_id")["skin_cancer_diagnosis"].max()
+
+patients = patient_labels.index
+labels = patient_labels.values
+
+train_patients, test_patients = train_test_split(
+    patients,
+    test_size=0.4,
+    random_state=42,
+    stratify=labels
 )
+
+train_mask = df["patient_id"].isin(train_patients)
+
+X_train = X[train_mask]
+y_train = y[train_mask]
+
 
 
 threshold = 0.8
@@ -38,7 +52,7 @@ y_final = df["skin_cancer_diagnosis"]
 
 model = RandomForestClassifier(
     n_estimators=500,
-    max_depth=8,
+    max_depth=6,
     random_state=42,
     class_weight={0: 1, 1: 1.5}
 )
@@ -50,4 +64,4 @@ df["predicted_label"] = all_pred
 df["predicted_probability_cancer"] = all_proba[:, list(model.classes_).index(1)]
 
 
-df.to_csv("../../data/Metadata_features/metadata_features.csv", index=False)
+df.to_csv(path, index=False)
