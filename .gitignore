@@ -13,6 +13,3 @@ data/tophat_results
 data/hair_removal_masks
 data/imgs_hair_removed
 data/plots
-
-.DS_Store
-src/.DS_Store

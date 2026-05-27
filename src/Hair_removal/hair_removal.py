@@ -120,7 +120,7 @@ def process_folder(image_folder, csv_path, output_folder, output_mask_folder):
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = BASE_DIR / "../../data"
+DATA_DIR = BASE_DIR / "../data"
 
 image_folder = DATA_DIR / "imgs"
 csv_path = DATA_DIR / "hair_coverage.csv"

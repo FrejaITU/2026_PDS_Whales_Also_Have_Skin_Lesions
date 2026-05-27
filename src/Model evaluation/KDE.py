@@ -4,9 +4,8 @@ import seaborn as sns
 from pathlib import Path
 
 base_dir = Path(__file__).resolve().parent
-data_dir = base_dir.parent.parent / "data"
-coverage_csv = data_dir / "hair_coverage.csv"
-annotations_csv = data_dir / "Old" / "annotations_combined.csv"
+coverage_csv = base_dir.parent / "data" / "hair_coverage.csv"
+annotations_csv = base_dir.parent / "data" / "Old" / "annotations_combined.csv"
 
 coverage_df = pd.read_csv(coverage_csv)
 annotations_df = pd.read_csv(annotations_csv)

@@ -34,20 +34,15 @@ FEATURES = {
 # Paths
 # --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
-data_path = BASE_DIR / "../../data"
+data_path = BASE_DIR / "../data"
 img_dir = data_path / "imgs"
-mask_dir = data_path / "masks"
-metadata_dir = data_path / "metadata.csv"
-metadata = pd.read_csv(metadata_dir)
+# for original masks
+#mask_dir = data_path / "masks"
+# for new masks
+mask_dir = data_path / "masks_top3_split_components"
 
-mask_type = input("Mask type: (normal | biggest | top3) ").lower
-if mask_type == "biggest":
-    mask_dir = data_path / "masks_biggest_component"
-elif mask_type == "top3":
-    mask_dir = data_path / "masks_top3_split_components"
-
-if input("Do images have hair removed? (y|n) ").lower in ("y", "yes", "1", "true"):
-    img_dir = data_path / "imgs_hair_removed"
+# Our CSV
+metadata = pd.read_csv(data_path / "metadata_top3_split_components_features.csv")
 
 def load_image_and_mask(img_path, mask_path):
     image = io.imread(img_path)
@@ -64,21 +59,21 @@ def load_image_and_mask(img_path, mask_path):
 
     return image, mask
 
-
+csv_name = input("Output CSV name (include .csv): ")
 
 for i, patient in enumerate(metadata.itertuples(), start=1):
-    if i % 25 == 0:
-        print(f"Processed {i} rows.")
+    print(f"Processed row {i}.")
+    #if i % 25 == 0:
+        #print(f"Processed {i} rows.")
 
     idx = patient.Index
     img_id = patient.img_id
 
     current_img_path = img_dir / img_id
-    
-    if split_mask:
-        current_mask_path = mask_dir / patient.component_mask
-    else:
-        current_mask_path = mask_dir / f"{Path(img_id).stem}_mask.png"
+    # Use when component masks and newly created metadata files
+    current_mask_path = mask_dir / patient.component_mask
+    # Use when only original masks and orignial metadata_(for_score).csv
+    #current_mask_path = mask_dir / f"{Path(img_id).stem}_mask.png"
 
     if not current_img_path.exists():
         print("Missing image:", img_id)
@@ -107,5 +102,5 @@ for i, patient in enumerate(metadata.itertuples(), start=1):
             metadata.at[idx, column_name] = value
         
     
-metadata.to_csv(metadata_dir, index=False)
+metadata.to_csv(data_path / csv_name, index=False)
 print("Finished running all features")

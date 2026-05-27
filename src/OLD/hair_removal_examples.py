@@ -7,21 +7,21 @@ base_dir = Path(__file__).resolve().parent
 examples = [
     {
         "title": "Low hair",
-        "original": "../../data/imgs/PAT_962_1823_942.png",
-        "mask": "../../data/masks/PAT_962_1823_942_mask.png",
-        "cleaned": "../../data/imgs_hair_removed/PAT_962_1823_942.png"
+        "original": "../data/imgs/PAT_962_1823_942.png",
+        "mask": "../data/masks/PAT_962_1823_942_mask.png",
+        "cleaned": "../data/imgs_hair_removed/PAT_962_1823_942.png"
     },
     {
         "title": "Moderate hair",
-        "original": "../../data/imgs/PAT_1405_1395_96.png",
-        "mask": "../../data/masks/PAT_1405_1395_96_mask.png",
-        "cleaned": "../../data/imgs_hair_removed/PAT_1405_1395_96.png"
+        "original": "../data/imgs/PAT_1405_1395_96.png",
+        "mask": "../data/masks/PAT_1405_1395_96_mask.png",
+        "cleaned": "../data/imgs_hair_removed/PAT_1405_1395_96.png"
     },
     {
         "title": "Heavy hair",
-        "original": "../../data/imgs/PAT_747_1409_116.png",
-        "mask": "../../data/masks/PAT_747_1409_116_mask.png",
-        "cleaned": "../../data/imgs_hair_removed/PAT_747_1409_116.png"
+        "original": "../data/imgs/PAT_747_1409_116.png",
+        "mask": "../data/masks/PAT_747_1409_116_mask.png",
+        "cleaned": "../data/imgs_hair_removed/PAT_747_1409_116.png"
     }
 ]
 
