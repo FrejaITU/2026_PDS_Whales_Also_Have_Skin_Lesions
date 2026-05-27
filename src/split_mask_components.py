@@ -20,7 +20,7 @@ TOP3_DIR = DATA_DIR / "masks_top3_split_components"
 BIGGEST_DIR.mkdir(exist_ok=True)
 TOP3_DIR.mkdir(exist_ok=True)
 
-METADATA_PATH = DATA_DIR / "metadata_reduced.csv"
+METADATA_PATH = DATA_DIR / "metadata.csv"
 BIGGEST_CSV_PATH = DATA_DIR / "metadata_biggest_component.csv"
 TOP3_CSV_PATH = DATA_DIR / "metadata_top3_split_components.csv"
 
@@ -131,55 +131,56 @@ metadata = pd.read_csv(METADATA_PATH)
 biggest_rows = []
 top3_rows = []
 
-for i, metadata_row in enumerate(metadata.itertuples(index=False), start=1):
-    if i % 25 == 0:
-        print(f"Processed {i} rows.")
+def run():
+    for i, metadata_row in enumerate(metadata.itertuples(index=False), start=1):
+        if i % 25 == 0:
+            print(f"Processed {i} rows.")
 
-    img_id = metadata_row.img_id
-    img_stem = Path(img_id).stem
+        img_id = metadata_row.img_id
+        img_stem = Path(img_id).stem
 
-    original_mask_name = f"{img_stem}_mask.png"
-    original_mask_path = MASK_DIR / original_mask_name
+        original_mask_name = f"{img_stem}_mask.png"
+        original_mask_path = MASK_DIR / original_mask_name
 
-    mask = load_mask(original_mask_path)
-    components = get_components(mask)
+        mask = load_mask(original_mask_path)
+        components = get_components(mask)
 
-    # --------------------------------------------------
-    # 1. Biggest component only
-    # --------------------------------------------------
-    biggest_mask = components[0]
+        # --------------------------------------------------
+        # 1. Biggest component only
+        # --------------------------------------------------
+        biggest_mask = components[0]
 
-    biggest_output_name = original_mask_name
-    biggest_output_path = BIGGEST_DIR / biggest_output_name
+        biggest_output_name = original_mask_name
+        biggest_output_path = BIGGEST_DIR / biggest_output_name
 
-    save_mask(biggest_mask, biggest_output_path)
+        save_mask(biggest_mask, biggest_output_path)
 
-    biggest_rows.append(
-        make_csv_row(
-            metadata_row,
-            original_mask_name,
-            biggest_output_name
-        )
-    )
-
-    # --------------------------------------------------
-    # 2. Top 3 split components
-    # --------------------------------------------------
-    top_components = select_top_components(components)
-
-    for component_index, component_mask in enumerate(top_components, start=1):
-        component_output_name = f"{img_stem}_component_{component_index}.png"
-        component_output_path = TOP3_DIR / component_output_name
-
-        save_mask(component_mask, component_output_path)
-
-        top3_rows.append(
+        biggest_rows.append(
             make_csv_row(
                 metadata_row,
                 original_mask_name,
-                component_output_name
+                biggest_output_name
             )
         )
+
+        # --------------------------------------------------
+        # 2. Top 3 split components
+        # --------------------------------------------------
+        top_components = select_top_components(components)
+
+        for component_index, component_mask in enumerate(top_components, start=1):
+            component_output_name = f"{img_stem}_component_{component_index}.png"
+            component_output_path = TOP3_DIR / component_output_name
+
+            save_mask(component_mask, component_output_path)
+
+            top3_rows.append(
+                make_csv_row(
+                    metadata_row,
+                    original_mask_name,
+                    component_output_name
+                )
+            )
 
 
 # --------------------------------------------------

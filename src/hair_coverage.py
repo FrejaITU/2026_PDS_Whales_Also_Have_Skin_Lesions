@@ -5,6 +5,9 @@ import pandas as pd
 from glob import glob
 
 
+
+
+
 def calculate_hair_coverage(image_path, mask_path):
     image = cv2.imread(image_path)
     lesion_mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
@@ -56,7 +59,11 @@ def calculate_hair_coverage(image_path, mask_path):
     return hair_pixels / lesion_pixels
 
 
-def process_folder(image_folder, mask_folder, output_csv):
+def process_folder():
+    image_folder = "../data/imgs"
+    mask_folder = "../data/masks"
+    output_csv = "../data/hair_coverage.csv"    
+
     results = []
 
     image_paths = glob(os.path.join(image_folder, "*.png"))
@@ -90,10 +97,3 @@ def process_folder(image_folder, mask_folder, output_csv):
 
     print("Saved CSV to:", output_csv)
 
-
-if __name__ == "__main__":
-    image_folder = "../data/imgs"
-    mask_folder = "../data/masks"
-    output_csv = "../data/hair_coverage.csv"
-
-    process_folder(image_folder, mask_folder, output_csv)

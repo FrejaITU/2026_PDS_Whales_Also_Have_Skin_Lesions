@@ -5,6 +5,13 @@ import pandas as pd
 from pathlib import Path
 
 
+BASE_DIR = Path(__file__).resolve().parents[1]
+DATA_DIR = BASE_DIR / "../data"
+image_folder = DATA_DIR / "imgs"
+csv_path = DATA_DIR / "hair_coverage.csv"
+output_folder = DATA_DIR / "imgs_hair_removed"
+output_mask_folder = DATA_DIR / "masks_hair_removed"
+
 def load_image(path):
     image = cv2.imread(path)
 
@@ -72,7 +79,7 @@ def remove_hair(image, hair_mask):
     )
 
 
-def process_folder(image_folder, csv_path, output_folder, output_mask_folder):
+def process_folder():
     os.makedirs(output_folder, exist_ok=True)
     os.makedirs(output_mask_folder, exist_ok=True)
 
@@ -119,13 +126,7 @@ def process_folder(image_folder, csv_path, output_folder, output_mask_folder):
             print("Skipping:", e)
 
 
-BASE_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = BASE_DIR / "../data"
 
-image_folder = DATA_DIR / "imgs"
-csv_path = DATA_DIR / "hair_coverage.csv"
-output_folder = DATA_DIR / "imgs_hair_removed"
-output_mask_folder = DATA_DIR / "masks_hair_removed"
 
 process_folder(
     image_folder=image_folder,
