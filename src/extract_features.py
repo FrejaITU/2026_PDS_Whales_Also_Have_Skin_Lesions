@@ -33,20 +33,21 @@ FEATURES = {
 # Paths
 # --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
-data_path = BASE_DIR / "../data"
+data_path = BASE_DIR / "data"
+features_dir = data_path / "features"
 img_dir = data_path / "imgs"
 no_hair_dir = data_path / "imgs_hair_removed"
 mask_dir = data_path / "masks"
 top3_dir = data_path / "masks_top3_split_components"
 biggest_dir = data_path / "masks_biggest_component"
 
-
-metadata = pd.read_csv(data_path / "metadata.csv")
-
 hc.process_folder()
 hr.process_folder()
 smc.run()
 
+metadata = pd.read_csv(data_path / "metadata.csv")
+metadata_biggest = pd.read_csv(data_path / "metadata_biggest_component.csv")
+metadata_top3 = pd.read_csv(data_path / "metadata_top3_split_components.csv")
 
 def load_image_and_mask(img_path, mask_path):
     image = io.imread(img_path)
@@ -67,8 +68,8 @@ def load_image_and_mask(img_path, mask_path):
 
 
 
-def run(img_path, mask_path, csv_name):
-    for i, patient in enumerate(metadata.itertuples(), start=1):
+def run(img_path, mask_path, data, csv_name):
+    for i, patient in enumerate(data.itertuples(), start=1):
         if i % 25 == 0:
             print(f"Processed {i} rows.")
 
@@ -103,14 +104,16 @@ def run(img_path, mask_path, csv_name):
             result = function(image, mask)
     
             for column_name, value in result.items():
-                if column_name not in metadata.columns:
-                    metadata[column_name] = pd.NA
-                metadata.at[idx, column_name] = value
-    metadata.to_csv(data_path / csv_name, index=False)
+                if column_name not in data.columns:
+                    data[column_name] = pd.NA
+                data.at[idx, column_name] = value
+    data.to_csv(features_dir / csv_name, index=False)
 
-run(img_dir, mask_dir, "features")
-run(img_dir, biggest_dir, "biggest_features")
-run(img_dir, top3_dir, "top3_features")
-run(no_hair_dir, mask_dir, "no_hair_features")
-run(no_hair_dir, biggest_dir, "biggest_no_hair_features")
-run(no_hair_dir, top3_dir, "top3_no_hair_features")
+run(img_dir, mask_dir, metadata, "features.csv")
+run(img_dir, biggest_dir, metadata_biggest, "biggest_features.csv")
+run(img_dir, top3_dir, metadata_top3, "top3_features.csv")
+run(no_hair_dir, mask_dir, metadata, "no_hair_features.csv")
+run(no_hair_dir, biggest_dir, metadata_biggest, "biggest_no_hair_features.csv")
+run(no_hair_dir, top3_dir, metadata_top3, "top3_no_hair_features.csv")
+
+print("Finished all feature extractions.")

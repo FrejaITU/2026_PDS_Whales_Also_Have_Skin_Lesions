@@ -115,7 +115,7 @@ def make_csv_row(metadata_row, original_mask_name, component_mask_name):
         "patient_id": metadata_row.patient_id,
         "lesion_id": metadata_row.lesion_id,
         "gender": metadata_row.gender,
-        "skin_cancer_diagnosis": metadata_row.skin_cancer_diagnosis,
+        "skin_cancer_diagnosis": int(metadata_row.diagnostic in ("BCC", "MEL", "SCC")),
         "diagnostic": metadata_row.diagnostic,
         "biopsed": metadata_row.biopsed,
         "original_mask": original_mask_name,
@@ -142,7 +142,16 @@ def run():
         original_mask_name = f"{img_stem}_mask.png"
         original_mask_path = MASK_DIR / original_mask_name
 
+        if not original_mask_path.exists():
+            print("Missing mask:", original_mask_path.name)
+            continue
+
         mask = load_mask(original_mask_path)
+
+        if not np.any(mask):
+            print("Skipping (empty mask):", original_mask_path.name)
+            continue
+
         components = get_components(mask)
 
         # --------------------------------------------------
@@ -181,19 +190,12 @@ def run():
                     component_output_name
                 )
             )
-
-
-# --------------------------------------------------
-# Save CSVs
-# --------------------------------------------------
-pd.DataFrame(biggest_rows, columns=CSV_COLUMNS).to_csv(
+    pd.DataFrame(biggest_rows, columns=CSV_COLUMNS).to_csv(
     BIGGEST_CSV_PATH,
     index=False
-)
+    )
 
-pd.DataFrame(top3_rows, columns=CSV_COLUMNS).to_csv(
-    TOP3_CSV_PATH,
-    index=False
-)
-
-print("Finished.")
+    pd.DataFrame(top3_rows, columns=CSV_COLUMNS).to_csv(
+        TOP3_CSV_PATH,
+        index=False
+    )

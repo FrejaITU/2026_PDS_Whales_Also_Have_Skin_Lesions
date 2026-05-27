@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = BASE_DIR / "../data"
+DATA_DIR = BASE_DIR / "data"
 image_folder = DATA_DIR / "imgs"
 csv_path = DATA_DIR / "hair_coverage.csv"
 output_folder = DATA_DIR / "imgs_hair_removed"
@@ -124,13 +124,3 @@ def process_folder():
 
         except FileNotFoundError as e:
             print("Skipping:", e)
-
-
-
-
-process_folder(
-    image_folder=image_folder,
-    output_folder=output_folder,
-    csv_path=csv_path,
-    output_mask_folder=output_mask_folder
-)
