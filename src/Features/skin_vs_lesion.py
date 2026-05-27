@@ -9,9 +9,9 @@ DATA_DIR = BASE_DIR / "data"
 
 IMG_DIR = DATA_DIR / "imgs_hair_removed"
 ORIGINAL_MASK_DIR = DATA_DIR / "masks"
-COMPONENT_MASK_DIR = DATA_DIR / "masks_top3_split_components"
+COMPONENT_MASK_DIR = DATA_DIR / "masks"
 
-CSV_PATH = DATA_DIR / "Metadata_features/metadata_top3_split_components_features_no_hair.csv"
+CSV_PATH = DATA_DIR / "Metadata_features/metadata_features_no_hair.csv"
 
 
 FEATURE_COLUMNS = [
@@ -89,8 +89,13 @@ for i, row in metadata.iterrows():
         print(f"Processed {i + 1} rows")
 
     image_path = IMG_DIR / row["img_id"]
-    original_mask_path = ORIGINAL_MASK_DIR / row["original_mask"]
-    component_mask_path = COMPONENT_MASK_DIR / row["component_mask"]
+
+    original_mask_path = ORIGINAL_MASK_DIR / f"{Path(row['img_id']).stem}_mask.png"
+    component_mask_path = ORIGINAL_MASK_DIR / f"{Path(row['img_id']).stem}_mask.png"
+
+    #For csv's with multiple components
+    #original_mask_path = ORIGINAL_MASK_DIR / row["original_mask"]
+    #component_mask_path = COMPONENT_MASK_DIR / row["component_mask"]
 
     if not image_path.exists():
         print("Missing image:", image_path)
