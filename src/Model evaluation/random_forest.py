@@ -14,20 +14,20 @@ X = df[['melanoma_color_count', 'hue_variance',
 y = df["skin_cancer_diagnosis"]
 
 
-X_trainval, X_test, y_trainval, y_test = train_test_split(
+X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
 
 threshold = 0.8
 max_allowed = 3
-corr = X_trainval.corr().abs().fillna(0)
+corr = X_train.corr().abs().fillna(0)
 counts = (corr > threshold).sum(axis=1) - 1
 to_drop = counts[counts > max_allowed].index.tolist()
-X_reduced = X_trainval.drop(columns=to_drop)
+X_reduced = X_train.drop(columns=to_drop)
 label_col = "skin_cancer_diagnosis"
 df_rank = X_reduced.copy()
-df_rank[label_col] = y_trainval
+df_rank[label_col] = y_train
 corr_with_label = df_rank.corr().abs()[label_col].drop(label_col).fillna(0)
 top10 = corr_with_label.sort_values(ascending=False).head(10).index.tolist()
 
