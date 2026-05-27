@@ -7,11 +7,11 @@ from skimage import color, io
 BASE_DIR = Path(__file__).resolve().parents[2]
 DATA_DIR = BASE_DIR / "data"
 
-IMG_DIR = DATA_DIR / "imgs"
+IMG_DIR = DATA_DIR / "imgs_hair_removed"
 ORIGINAL_MASK_DIR = DATA_DIR / "masks"
 COMPONENT_MASK_DIR = DATA_DIR / "masks_top3_split_components"
 
-CSV_PATH = DATA_DIR / "metadata_top3_split_components_features.csv"
+CSV_PATH = DATA_DIR / "Metadata_features/metadata_top3_split_components_features_no_hair.csv"
 
 
 FEATURE_COLUMNS = [
