@@ -10,13 +10,11 @@ from skimage.morphology import remove_small_objects
 ### import your script like you would a libary
 import mask_components as mc
 import melanoma_colors as mcf
-import get_asymmetry as ga
+import new_get_asymmetry as ga
 import get_compactness as gc
 import hsv_variance as hsvv
-import Mabrouk_asymmetry_score as mba
+import new_mabrouk as mba
 import convexity_score as cs
-import new_mabrouk as nmba
-import new_get_asymmetry as nga
 
 ### Add it to a dictonary
 FEATURES = {
