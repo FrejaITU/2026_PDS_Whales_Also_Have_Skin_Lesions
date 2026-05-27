@@ -89,7 +89,7 @@ for i, row in metadata.iterrows():
         print(f"Processed {i + 1} rows")
 
     image_path = IMG_DIR / row["img_id"]
-
+    #For csv's with with originale mask
     original_mask_path = ORIGINAL_MASK_DIR / f"{Path(row['img_id']).stem}_mask.png"
     component_mask_path = ORIGINAL_MASK_DIR / f"{Path(row['img_id']).stem}_mask.png"
 
