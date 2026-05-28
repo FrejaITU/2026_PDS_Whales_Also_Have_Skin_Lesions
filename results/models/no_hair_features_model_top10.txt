@@ -1,0 +1,10 @@
+lesion_green_share
+saturation_variance
+melanoma_color_count
+mabrouk_asymmetry_score
+avg_asymmetry_score
+worst_score
+convexity_score
+lesion_red_share
+lesion_skin_green_diff
+Polsby-Popper
