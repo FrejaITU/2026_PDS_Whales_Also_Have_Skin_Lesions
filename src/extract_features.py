@@ -14,6 +14,8 @@ import hsv_variance as hsvv
 import convexity_score as cs
 import mabrouk as mba
 import get_asymmetry as ga
+import skin_vs_lesion as svl
+
 import hair_removal as hr
 import hair_coverage as hc
 import split_mask_components as smc
@@ -107,10 +109,23 @@ def run(img_path, mask_path, data, csv_name):
                 if column_name not in data.columns:
                     data[column_name] = pd.NA
                 data.at[idx, column_name] = value
+        if mask_path == mask_dir:
+            result = svl.rgb_features(image, mask, mask)
+        else:
+            original_mask = io.imread(mask_dir / f"{Path(img_id).stem}_mask.png")
+            if original_mask.ndim == 3:
+                original_mask = color.rgb2gray(original_mask)
+            original_mask = original_mask > 0
+            original_mask = remove_small_objects(original_mask, min_size=50)
+            result = svl.rgb_features(image, mask, original_mask)
+        for column_name, value in result.items():
+                if column_name not in data.columns:
+                    data[column_name] = pd.NA
+                data.at[idx, column_name] = value
     data.to_csv(features_dir / csv_name, index=False)
 
 run(img_dir, mask_dir, metadata, "features.csv")
-run(img_dir, biggest_dir, metadata_biggest, "biggest_features.csv")
+run(img_dir, biggest_dir, metadata_biggest, "tbiggest_features.csv")
 run(img_dir, top3_dir, metadata_top3, "top3_features.csv")
 run(no_hair_dir, mask_dir, metadata, "no_hair_features.csv")
 run(no_hair_dir, biggest_dir, metadata_biggest, "biggest_no_hair_features.csv")
