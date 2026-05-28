@@ -4,8 +4,8 @@ import seaborn as sns
 from pathlib import Path
 
 base_dir = Path(__file__).resolve().parent
-coverage_csv = base_dir.parent / "data" / "hair_coverage.csv"
-annotations_csv = base_dir.parent / "data" / "Old" / "annotations_combined.csv"
+coverage_csv = base_dir.parent.parent / "data" / "hair_coverage.csv"
+annotations_csv = base_dir.parent.parent / "data" / "annotations_combined.csv"
 
 coverage_df = pd.read_csv(coverage_csv)
 annotations_df = pd.read_csv(annotations_csv)
@@ -63,7 +63,9 @@ plt.ylabel("Density")
 plt.title("Hair coverage distribution by label")
 plt.grid(alpha=0.25)
 
-plots_dir = base_dir.parent / "data" / "plots"
+data_dir = base_dir.parent.parent / "data"
+data_dir.mkdir(parents=True, exist_ok=True)
+plots_dir = data_dir / "plots"
 plots_dir.mkdir(parents=True, exist_ok=True)
 output_path = plots_dir / "hair_coverage_kde.png"
 
