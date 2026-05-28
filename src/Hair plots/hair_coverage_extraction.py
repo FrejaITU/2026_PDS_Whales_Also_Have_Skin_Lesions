@@ -9,8 +9,8 @@ base_dir = Path(__file__).resolve().parent
 # LOAD IMAGE + MASK
 # ---------------------------------------------------
 
-image_path = "../data/imgs/PAT_108_161_423.png"
-mask_path = "../data/masks/PAT_108_161_423_mask.png"
+image_path = "../../data/imgs/PAT_108_161_423.png"
+mask_path = "../../data/masks/PAT_108_161_423_mask.png"
 
 image = cv2.imread(image_path)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -89,6 +89,7 @@ hair_inside = hair_mask * lesion_mask
 # ---------------------------------------------------
 
 fig, ax = plt.subplots(1, 4, figsize=(16, 4))
+fig.suptitle("PAT_108_161_423", fontsize=16, y=1.02)
 
 ax[0].imshow(image)
 ax[0].set_title("Original")
@@ -106,8 +107,11 @@ for a in ax:
     a.axis("off")
 
 plt.tight_layout()
+plt.subplots_adjust(top=0.85)
 
-plots_dir = base_dir.parent / "data" / "plots"
+data_dir = base_dir.parent.parent / "data"
+data_dir.mkdir(parents=True, exist_ok=True)
+plots_dir = data_dir / "plots"
 plots_dir.mkdir(parents=True, exist_ok=True)
 output_path = plots_dir / "figure_x_pipeline.png"
 
