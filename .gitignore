@@ -8,3 +8,5 @@ data/masks_top3_split_components
 data/hair_removal_masks
 data/imgs_hair_removed
 data/plots
+
+results/figures
