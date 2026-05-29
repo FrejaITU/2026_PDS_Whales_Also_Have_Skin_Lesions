@@ -9,4 +9,5 @@ data/hair_removal_masks
 data/imgs_hair_removed
 data/plots
 
-results/figures
+results/figures/figure_x_pipeline.png
+results/figures/figure_hair_removal.png
