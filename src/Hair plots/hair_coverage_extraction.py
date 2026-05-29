@@ -9,8 +9,8 @@ base_dir = Path(__file__).resolve().parent
 # LOAD IMAGE + MASK
 # ---------------------------------------------------
 
-image_path = "../../data/imgs/PAT_108_161_423.png"
-mask_path = "../../data/masks/PAT_108_161_423_mask.png"
+image_path = "../../data/imgs/PAT_747_1409_116.png"
+mask_path = "../../data/masks/PAT_747_1409_116_mask.png"
 
 image = cv2.imread(image_path)
 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -88,20 +88,23 @@ hair_inside = hair_mask * lesion_mask
 # PLOT
 # ---------------------------------------------------
 
-fig, ax = plt.subplots(1, 4, figsize=(16, 4))
-fig.suptitle("PAT_108_161_423", fontsize=16, y=1.02)
+fig, ax = plt.subplots(1, 5, figsize=(18, 4))
+fig.suptitle("PAT_747_1409_116", fontsize=16, y=1.02)
 
 ax[0].imshow(image)
 ax[0].set_title("Original")
 
-ax[1].imshow(enhanced, cmap="gray")
-ax[1].set_title("CLAHE")
+ax[1].imshow(gray, cmap="gray")
+ax[1].set_title("Gray")
 
-ax[2].imshow(hair_mask, cmap="gray")
-ax[2].set_title("Hair mask")
+ax[2].imshow(enhanced, cmap="gray")
+ax[2].set_title("CLAHE")
 
-ax[3].imshow(hair_inside, cmap="gray")
-ax[3].set_title("Hair inside lesion")
+ax[3].imshow(hair_mask, cmap="gray")
+ax[3].set_title("Hair mask")
+
+ax[4].imshow(hair_inside, cmap="gray")
+ax[4].set_title("Hair inside lesion")
 
 for a in ax:
     a.axis("off")
@@ -109,11 +112,9 @@ for a in ax:
 plt.tight_layout()
 plt.subplots_adjust(top=0.85)
 
-data_dir = base_dir.parent.parent / "data"
+data_dir = base_dir.parent.parent / "results" / "figures"
 data_dir.mkdir(parents=True, exist_ok=True)
-plots_dir = data_dir / "plots"
-plots_dir.mkdir(parents=True, exist_ok=True)
-output_path = plots_dir / "figure_x_pipeline.png"
+output_path = data_dir / "figure_x_pipeline.png"
 
 plt.savefig(str(output_path), dpi=300, bbox_inches="tight")
 print(f"Saved plot to {output_path}")

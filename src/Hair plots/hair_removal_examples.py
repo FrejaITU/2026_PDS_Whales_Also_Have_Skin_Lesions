@@ -58,11 +58,9 @@ for row, ex in enumerate(examples):
 plt.tight_layout()
 plt.subplots_adjust(left=0.12)
 
-data_dir = base_dir.parent.parent / "data"
+data_dir = base_dir.parent.parent / "results" / "figures"
 data_dir.mkdir(parents=True, exist_ok=True)
-plots_dir = data_dir / "plots"
-plots_dir.mkdir(parents=True, exist_ok=True)
-output_path = plots_dir / "figure_hair_removal.png"
+output_path = data_dir / "figure_hair_removal.png"
 
 plt.savefig(str(output_path), dpi=300, bbox_inches="tight")
 print(f"Saved plot to {output_path}")

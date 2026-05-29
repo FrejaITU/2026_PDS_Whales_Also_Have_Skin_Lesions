@@ -63,11 +63,9 @@ plt.ylabel("Density")
 plt.title("Hair coverage distribution by label")
 plt.grid(alpha=0.25)
 
-data_dir = base_dir.parent.parent / "data"
+data_dir = base_dir.parent.parent / "results" / "figures"
 data_dir.mkdir(parents=True, exist_ok=True)
-plots_dir = data_dir / "plots"
-plots_dir.mkdir(parents=True, exist_ok=True)
-output_path = plots_dir / "hair_coverage_kde.png"
+output_path = data_dir / "hair_coverage_kde.png"
 
 plt.savefig(str(output_path), dpi=300, bbox_inches="tight")
 print(f"Saved plot to {output_path}")
