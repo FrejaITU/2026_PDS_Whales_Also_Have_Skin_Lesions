@@ -17,6 +17,8 @@ Run src/extract_features.py
 
 This will output 6 CSVs with feature scores in data/features/
 
+In main.py, set load_models to True or False
+
 Run main.py
 
-This will output the predictions in results/predictions/
+This will output the predictions in results/predictions/ if load_models is True, and output the PKL files and top 10 features for each model if False.
