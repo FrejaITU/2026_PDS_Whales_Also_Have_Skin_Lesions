@@ -125,7 +125,7 @@ def run(img_path, mask_path, data, csv_name):
     data.to_csv(features_dir / csv_name, index=False)
 
 run(img_dir, mask_dir, metadata, "features.csv")
-run(img_dir, biggest_dir, metadata_biggest, "tbiggest_features.csv")
+run(img_dir, biggest_dir, metadata_biggest, "biggest_features.csv")
 run(img_dir, top3_dir, metadata_top3, "top3_features.csv")
 run(no_hair_dir, mask_dir, metadata, "no_hair_features.csv")
 run(no_hair_dir, biggest_dir, metadata_biggest, "biggest_no_hair_features.csv")
