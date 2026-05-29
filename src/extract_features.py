@@ -50,6 +50,8 @@ smc.run()
 metadata = pd.read_csv(data_path / "metadata.csv")
 metadata_biggest = pd.read_csv(data_path / "metadata_biggest_component.csv")
 metadata_top3 = pd.read_csv(data_path / "metadata_top3_split_components.csv")
+metadata["skin_cancer_diagnosis"] = metadata["diagnostic"].isin(("BCC", "MEL", "SCC")).astype(int)
+metadata.to_csv(data_path / "metadata.csv")
 
 def load_image_and_mask(img_path, mask_path):
     image = io.imread(img_path)
